@@ -45,15 +45,15 @@ macOS loses Wi-Fi in ways the menu bar never explains. The radio crashes after s
 
 ## Screens
 
-Five core screens (replace the placeholders in [`docs/screenshots/`](docs/screenshots/) with real captures — see the [capture guide](docs/screenshots/README.md)):
+Five core screens (real captures live in [`docs/screenshots/`](docs/screenshots/); see the [capture guide](docs/screenshots/README.md)):
 
 | | |
 | :---: | :---: |
-| ![Welcome / Landing](docs/screenshots/01-welcome.svg) | ![Dashboard](docs/screenshots/02-dashboard.svg) |
+| ![Welcome / Landing](docs/screenshots/01-welcome.png) | ![Dashboard](docs/screenshots/02-dashboard.png) |
 | **1. Welcome** — feature tour entry point | **2. Dashboard** — live status at a glance |
-| ![Networks](docs/screenshots/03-networks.svg) | ![Diagnostics](docs/screenshots/04-diagnostics.svg) |
+| ![Networks](docs/screenshots/03-networks.png) | ![Diagnostics](docs/screenshots/04-diagnostics.png) |
 | **3. Networks** — every SSID, band & signal | **4. Diagnostics** — live signal & latency charts |
-| ![Settings](docs/screenshots/05-settings.svg) | |
+| ![Settings](docs/screenshots/05-settings.png) | |
 | **5. Settings** — auto-repair, switching & deep repair | |
 
 ---
