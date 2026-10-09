@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body { background: #fcfcfc; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
