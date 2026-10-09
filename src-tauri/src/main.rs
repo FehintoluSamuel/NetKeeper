@@ -19,6 +19,7 @@ pub struct AppSettings {
     notify_disconnect: bool, notify_ip_change: bool, ping_router_target: String, ping_dns_target: String, ping_internet_target: String,
     quality_threshold: i32, interface_name: String, preferred_networks: Vec<String>, simulation_mode: bool,
     #[serde(default = "default_true")] auto_heal: bool,
+    #[serde(default)] auto_deep_repair: bool,
 }
 fn default_true() -> bool { true }
 impl Default for AppSettings {
@@ -26,20 +27,22 @@ impl Default for AppSettings {
         Self { auto_reconnect: true, keep_alive: true, keep_alive_interval: "30s".to_string(), reconnect_on_wake: true, auto_switch_strongest: false,
         preferred_band: "Auto".to_string(), block_open: true, launch_at_login: false, show_menu_bar: true, show_dock: true,
         notify_disconnect: true, notify_ip_change: false, ping_router_target: "".to_string(), ping_dns_target: "1.1.1.1".to_string(), ping_internet_target: "8.8.8.8".to_string(),
-        quality_threshold: 30, interface_name: "en".to_string(), preferred_networks: vec![], simulation_mode: true, auto_heal: true, }
+        quality_threshold: 30, interface_name: "en".to_string(), preferred_networks: vec![], simulation_mode: true, auto_heal: true, auto_deep_repair: false, }
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LogEntry { id: String, timestamp: String, time_ms: i64, level: String, source: String, message: String, detail: Option<String>, }
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DhcpState { healthy: bool, ip: String, state: String, detail: String, }
 
 fn config_dir() -> PathBuf { let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); let p = PathBuf::from(home).join(".config").join("netkeeper"); let _ = fs::create_dir_all(&p); p }
 fn settings_path() -> PathBuf { config_dir().join("settings.json") }
 fn logs_path() -> PathBuf { config_dir().join("logs.jsonl") }
 fn onboarded_path() -> PathBuf { config_dir().join(".onboarded") }
 
-#[command] fn get_onboarding_status() -> Result<bool, String> { Ok(onboarded_path().exists()) }
-#[command] fn set_onboarded() -> Result<String, String> { fs::write(onboarded_path(), "1").map_err(|e| e.to_string())?; Ok("onboarded".to_string()) }
-#[command] fn reset_onboarding() -> Result<String, String> { let p=onboarded_path(); if p.exists() { let _=fs::remove_file(&p); } Ok("reset".to_string()) }
+#[command(async)] fn get_onboarding_status() -> Result<bool, String> { Ok(onboarded_path().exists()) }
+#[command(async)] fn set_onboarded() -> Result<String, String> { fs::write(onboarded_path(), "1").map_err(|e| e.to_string())?; Ok("onboarded".to_string()) }
+#[command(async)] fn reset_onboarding() -> Result<String, String> { let p=onboarded_path(); if p.exists() { let _=fs::remove_file(&p); } Ok("reset".to_string()) }
 
 // Auto-start at login uses a macOS LaunchAgent so the app comes back after reboot.
 fn launch_agent_path() -> PathBuf { let home=std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); PathBuf::from(home).join("Library").join("LaunchAgents").join("com.netkeeper.app.plist") }
@@ -56,21 +59,21 @@ fn sync_autostart(enabled: bool) -> Result<String, String> {
     }
     Ok(if enabled { "enabled" } else { "disabled" }.to_string())
 }
-#[command] fn set_autostart(enabled: bool) -> Result<String, String> { sync_autostart(enabled) }
-#[command] fn get_autostart() -> Result<bool, String> { Ok(launch_agent_path().exists()) }
+#[command(async)] fn set_autostart(enabled: bool) -> Result<String, String> { sync_autostart(enabled) }
+#[command(async)] fn get_autostart() -> Result<bool, String> { Ok(launch_agent_path().exists()) }
 
-#[command] fn get_settings() -> Result<AppSettings, String> { let path=settings_path(); if path.exists() { match fs::read_to_string(&path) { Ok(s)=>Ok(serde_json::from_str(&s).unwrap_or_default()), Err(_)=>Ok(AppSettings::default()) } } else { Ok(AppSettings::default()) } }
-#[command] fn save_settings(settings: AppSettings) -> Result<String, String> {
+#[command(async)] fn get_settings() -> Result<AppSettings, String> { let path=settings_path(); if path.exists() { match fs::read_to_string(&path) { Ok(s)=>Ok(serde_json::from_str(&s).unwrap_or_default()), Err(_)=>Ok(AppSettings::default()) } } else { Ok(AppSettings::default()) } }
+#[command(async)] fn save_settings(settings: AppSettings) -> Result<String, String> {
     let path=settings_path(); let json=serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?; fs::write(&path, json).map_err(|e| e.to_string())?;
     let _ = sync_autostart(settings.launch_at_login);
     Ok("saved".to_string())
 }
 
-#[command] fn get_logs() -> Result<Vec<LogEntry>, String> { let path=logs_path(); if!path.exists() { return Ok(vec![]); } let file=fs::File::open(&path).map_err(|e| e.to_string())?; let reader=BufReader::new(file); let mut logs: Vec<LogEntry>=Vec::new(); for line in reader.lines().flatten() { if let Ok(entry)=serde_json::from_str::<LogEntry>(&line) { logs.push(entry); } } logs.reverse(); if logs.len()>500 { logs.truncate(500); } Ok(logs) }
-#[command] fn append_log(entry: LogEntry) -> Result<String, String> { let path=logs_path(); let line=serde_json::to_string(&entry).map_err(|e| e.to_string())?; use std::io::Write; let mut file=fs::OpenOptions::new().create(true).append(true).open(&path).map_err(|e| e.to_string())?; writeln!(file, "{}", line).map_err(|e| e.to_string())?; Ok("appended".to_string()) }
-#[command] fn clear_logs() -> Result<String, String> { let path=logs_path(); if path.exists() { fs::write(&path, "").map_err(|e| e.to_string())?; } Ok("cleared".to_string()) }
+#[command(async)] fn get_logs() -> Result<Vec<LogEntry>, String> { let path=logs_path(); if!path.exists() { return Ok(vec![]); } let file=fs::File::open(&path).map_err(|e| e.to_string())?; let reader=BufReader::new(file); let mut logs: Vec<LogEntry>=Vec::new(); for line in reader.lines().flatten() { if let Ok(entry)=serde_json::from_str::<LogEntry>(&line) { logs.push(entry); } } logs.reverse(); if logs.len()>500 { logs.truncate(500); } Ok(logs) }
+#[command(async)] fn append_log(entry: LogEntry) -> Result<String, String> { let path=logs_path(); let line=serde_json::to_string(&entry).map_err(|e| e.to_string())?; use std::io::Write; let mut file=fs::OpenOptions::new().create(true).append(true).open(&path).map_err(|e| e.to_string())?; writeln!(file, "{}", line).map_err(|e| e.to_string())?; Ok("appended".to_string()) }
+#[command(async)] fn clear_logs() -> Result<String, String> { let path=logs_path(); if path.exists() { fs::write(&path, "").map_err(|e| e.to_string())?; } Ok("cleared".to_string()) }
 
-#[command]
+#[command(async)]
 fn scan_wifi() -> Result<Vec<WifiNetwork>, String> {
     // ALL networks detection - no MTN filter - no Starlink filter - detects any SSID
     let output = Command::new("/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport")
@@ -133,11 +136,11 @@ fn detect_wifi_interface() -> String {
     "en0".to_string()
 }
 
-#[command] fn get_wifi_interface() -> Result<String, String> { Ok(detect_wifi_interface()) }
-#[command] fn get_current_wifi() -> Result<String, String> { let iface=detect_wifi_interface(); let output=Command::new("sh").arg("-c").arg(format!("networksetup -getairportnetwork {} 2>&1", iface)).output().map_err(|e| e.to_string())?; Ok(String::from_utf8_lossy(&output.stdout).to_string()) }
-#[command] fn emergency_reset() -> Result<String, String> { let iface=detect_wifi_interface(); let _=Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {0} off; sleep 1; networksetup -setairportpower {0} on", iface)).output(); Ok("Radio reset triggered".to_string()) }
+#[command(async)] fn get_wifi_interface() -> Result<String, String> { Ok(detect_wifi_interface()) }
+#[command(async)] fn get_current_wifi() -> Result<String, String> { let iface=detect_wifi_interface(); let output=Command::new("sh").arg("-c").arg(format!("networksetup -getairportnetwork {} 2>&1", iface)).output().map_err(|e| e.to_string())?; Ok(String::from_utf8_lossy(&output.stdout).to_string()) }
+#[command(async)] fn emergency_reset() -> Result<String, String> { let iface=detect_wifi_interface(); let _=Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {0} off; sleep 1; networksetup -setairportpower {0} on", iface)).output(); Ok("Radio reset triggered".to_string()) }
 
-#[command] fn get_ip_info() -> Result<IpInfo, String> {
+#[command(async)] fn get_ip_info() -> Result<IpInfo, String> {
     let iface=detect_wifi_interface();
     let ip_out=Command::new("ipconfig").arg("getifaddr").arg(&iface).output().map_err(|e| e.to_string())?; let mut ip=String::from_utf8_lossy(&ip_out.stdout).trim().to_string(); if ip.is_empty() { ip="--".to_string(); }
     let router_out=Command::new("sh").arg("-c").arg(format!("netstat -rn | grep default | grep -w {} | awk '{{print $2}}' | head -1", iface)).output().map_err(|e| e.to_string())?; let mut router=String::from_utf8_lossy(&router_out.stdout).trim().to_string(); if router.is_empty() { router="--".to_string(); }
@@ -149,15 +152,123 @@ fn detect_wifi_interface() -> String {
     let uptime_out=Command::new("sh").arg("-c").arg("uptime | awk -F'up ' '{print $2}' | awk -F',' '{print $1}'").output().map_err(|e| e.to_string())?; let uptime=String::from_utf8_lossy(&uptime_out.stdout).trim().to_string();
     Ok(IpInfo{ ip, router, subnet, public_ip, dns, tx_rate, uptime, bssid, band, security })
 }
-#[command] fn ping_host(host: String) -> Result<PingResult, String> { let output=Command::new("ping").args(["-c", "1", "-W", "1000", &host]).output().map_err(|e| e.to_string())?; let stdout=String::from_utf8_lossy(&output.stdout); let ok=output.status.success(); let mut ms: Option<u64>=None; for part in stdout.split_whitespace() { if part.starts_with("time=") { let t=part.replace("time=", "").replace("ms", ""); if let Ok(v)=t.parse::<f64>() { ms=Some(v.round() as u64); } } } if ok && ms.is_none() { ms=Some(3); } Ok(PingResult{ ms, ok }) }
-#[command] fn get_link_stats() -> Result<serde_json::Value, String> { let output=Command::new("sh").arg("-c").arg("/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I 2>&1").output().map_err(|e| e.to_string())?; let s=String::from_utf8_lossy(&output.stdout); let mut signal=0; for line in s.lines() { if line.trim().starts_with("agrCtlRSSI:") { if let Some(v)=line.split(':').nth(1) { if let Ok(n)=v.trim().parse::<i32>() { signal=n; } } } } Ok(serde_json::json!({ "signal_dbm": signal })) }
+#[command(async)] fn ping_host(host: String) -> Result<PingResult, String> { let output=Command::new("ping").args(["-c", "1", "-W", "1000", &host]).output().map_err(|e| e.to_string())?; let stdout=String::from_utf8_lossy(&output.stdout); let ok=output.status.success(); let mut ms: Option<u64>=None; for part in stdout.split_whitespace() { if part.starts_with("time=") { let t=part.replace("time=", "").replace("ms", ""); if let Ok(v)=t.parse::<f64>() { ms=Some(v.round() as u64); } } } if ok && ms.is_none() { ms=Some(3); } Ok(PingResult{ ms, ok }) }
+#[command(async)] fn get_link_stats() -> Result<serde_json::Value, String> { let output=Command::new("sh").arg("-c").arg("/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I 2>&1").output().map_err(|e| e.to_string())?; let s=String::from_utf8_lossy(&output.stdout); let mut signal=0; for line in s.lines() { if line.trim().starts_with("agrCtlRSSI:") { if let Some(v)=line.split(':').nth(1) { if let Ok(n)=v.trim().parse::<i32>() { signal=n; } } } } Ok(serde_json::json!({ "signal_dbm": signal })) }
 
-#[command] fn simulate_disconnect(interface: String) -> Result<String, String> { let _=Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {} off", interface)).output(); Ok(format!("Simulated disconnect on {} - Wi-Fi powered off for demo", interface)) }
-#[command] fn force_restart_service(interface: String) -> Result<String, String> {
+#[command(async)] fn simulate_disconnect(interface: String) -> Result<String, String> { let _=Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {} off", interface)).output(); Ok(format!("Simulated disconnect on {} - Wi-Fi powered off for demo", interface)) }
+#[command(async)] fn force_restart_service(interface: String) -> Result<String, String> {
     let script=format!(r#"networksetup -setairportpower {0} off; sleep 1; killall -9 airportd 2>/dev/null; true; dscacheutil -flushcache; sudo killall -HUP mDNSResponder 2>/dev/null; true; networksetup -setairportpower {0} on; sleep 2; ipconfig set {0} BOOTP; ipconfig set {0} DHCP"#, interface);
     let _=Command::new("sh").arg("-c").arg(script).output(); Ok("Force restart completed - interface reset, DNS flushed, DHCP renewed".to_string())
 }
-#[command] fn restore_connection(interface: String, ssid: String) -> Result<String, String> { let _=Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {} on", interface)).output(); Ok(format!("Restore attempted for {} on {}", ssid, interface)) }
+#[command(async)] fn restore_connection(interface: String, ssid: String) -> Result<String, String> { let _=Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {} on", interface)).output(); Ok(format!("Restore attempted for {} on {}", ssid, interface)) }
+
+// Real radio power state for the active Wi-Fi interface.
+#[command(async)] fn get_radio_state() -> Result<bool, String> {
+    let iface = detect_wifi_interface();
+    let out = Command::new("networksetup").args(["-getairportpower", &iface]).output().map_err(|e| e.to_string())?;
+    Ok(String::from_utf8_lossy(&out.stdout).to_lowercase().contains(": on"))
+}
+
+// Turn the Wi-Fi radio on or off (used by the connection manager, not the emergency reset).
+#[command(async)] fn set_radio(on: bool) -> Result<String, String> {
+    let iface = detect_wifi_interface();
+    let _ = Command::new("networksetup").args(["-setairportpower", &iface, if on { "on" } else { "off" }]).output();
+    Ok(format!("radio {}", if on { "on" } else { "off" }))
+}
+
+// Join a network by name. For networks already known to macOS the password can be
+// omitted; open networks never need one. Used for auto-reconnect and auto-switch.
+#[command(async)] fn connect_wifi(ssid: String, password: String) -> Result<String, String> {
+    let iface = detect_wifi_interface();
+    let mut cmd = Command::new("networksetup");
+    cmd.arg("-setairportnetwork").arg(&iface).arg(&ssid);
+    if !password.is_empty() { cmd.arg(&password); }
+    let out = cmd.output().map_err(|e| e.to_string())?;
+    let stdout = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&out.stderr).trim().to_string();
+    let lower = format!("{} {}", stdout.to_lowercase(), stderr.to_lowercase());
+    if lower.contains("could not find network") || lower.contains("failed") || lower.contains("error") || lower.contains("not find") {
+        return Err(if !stderr.is_empty() { stderr } else if !stdout.is_empty() { stdout } else { format!("could not join {}", ssid) });
+    }
+    Ok(if stdout.is_empty() { format!("connected to {}", ssid) } else { stdout })
+}
+
+// Disassociate from the current network without power-cycling the radio.
+#[command(async)] fn disconnect_wifi() -> Result<String, String> {
+    let iface = detect_wifi_interface();
+    let _ = Command::new("sh").arg("-c").arg(format!("airport -z 2>/dev/null; true")).output();
+    let _ = iface;
+    Ok("disassociated".to_string())
+}
+
+// Show or hide the Dock icon at runtime by switching the macOS activation policy.
+#[cfg(target_os = "macos")]
+fn apply_activation_policy(visible: bool) {
+    use objc::{class, msg_send, sel, sel_impl};
+    unsafe {
+        let ns_app: *mut objc::runtime::Object = msg_send![class!(NSApplication), sharedApplication];
+        let policy: i64 = if visible { 0 } else { 1 }; // Regular = 0, Accessory = 1
+        let _: () = msg_send![ns_app, setActivationPolicy: policy];
+        if visible { let _: () = msg_send![ns_app, activateIgnoringOtherApps: 1i32]; }
+    }
+}
+#[cfg(not(target_os = "macos"))]
+fn apply_activation_policy(_visible: bool) {}
+// AppKit calls must run on the main thread, so this command stays synchronous.
+#[command] fn set_dock_visible(visible: bool) -> Result<String, String> {
+    apply_activation_policy(visible);
+    Ok(format!("dock {}", if visible { "shown" } else { "hidden" }))
+}
+
+// The two plists below hold macOS's interface -> network-service mapping. When they
+// get corrupted the Wi-Fi icon greys out with a slash even though the radio is on.
+// Deleting them (as root) forces macOS to rebuild the mapping - a reboot finishes it.
+const NET_SC_PREFS: &[&str] = &[
+    "/Library/Preferences/SystemConfiguration/NetworkInterfaces.plist",
+    "/Library/Preferences/SystemConfiguration/preferences.plist",
+];
+
+// Reports whether the current Wi-Fi DHCP state looks broken while the radio is on.
+#[command(async)] fn check_dhcp_state() -> Result<DhcpState, String> {
+    let iface = detect_wifi_interface();
+    let power_out = Command::new("networksetup").args(["-getairportpower", &iface]).output();
+    let radio_on = power_out.map(|o| String::from_utf8_lossy(&o.stdout).to_lowercase().contains(": on")).unwrap_or(false);
+    let ip_out = Command::new("ipconfig").args(["getifaddr", &iface]).output().map_err(|e| e.to_string())?;
+    let ip = String::from_utf8_lossy(&ip_out.stdout).trim().to_string();
+    let no_ip = ip.is_empty();
+    let link_local = ip.starts_with("169.254.");
+    // Healthy unless the radio is on but has no usable IPv4 lease.
+    let healthy = !(radio_on && (no_ip || link_local));
+    let state = if !radio_on { "radio-off" } else if no_ip { "no-ip" } else if link_local { "link-local" } else { "ok" }.to_string();
+    let detail = format!("{} radio {} - ip {}", iface, if radio_on {"ON"} else {"OFF"}, if no_ip {"--"} else {&ip});
+    Ok(DhcpState { healthy, ip, state, detail })
+}
+
+// Deletes the corruptible SystemConfiguration plists. Runs through osascript so macOS
+// shows its native administrator password prompt - the app never stores credentials.
+#[command(async)] fn deep_network_repair() -> Result<String, String> {
+    let rm_cmd = format!("rm -f {}", NET_SC_PREFS.join(" "));
+    let script = format!("do shell script \"{}\" with administrator privileges", rm_cmd);
+    let out = Command::new("osascript").args(["-e", &script]).output().map_err(|e| e.to_string())?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
+        return Err(if err.is_empty() { "repair cancelled or not authorised".to_string() } else { err });
+    }
+    let _ = Command::new("sh").arg("-c").arg("dscacheutil -flushcache").output();
+    Ok(format!("removed {} preference files - network mapping rebuilt - reboot required", NET_SC_PREFS.len()))
+}
+
+// Native dialog asking to reboot now; uses System Events so no extra admin prompt.
+#[command(async)] fn prompt_reboot() -> Result<String, String> {
+    let dialog = r#"button returned of (display dialog "Network configuration was rebuilt.\n\nReboot now to finish the repair?" buttons {"Later", "Reboot Now"} default button "Reboot Now" with title "NetKeeper" with icon caution)"#;
+    let out = Command::new("osascript").args(["-e", dialog]).output().map_err(|e| e.to_string())?;
+    let res = String::from_utf8_lossy(&out.stdout);
+    if res.contains("Reboot Now") {
+        let _ = Command::new("osascript").args(["-e", "tell application \"System Events\" to restart"]).output();
+        return Ok("reboot".to_string());
+    }
+    Ok("later".to_string())
+}
 
 fn main() {
     let show_item = CustomMenuItem::new("show".to_string(), "Show NetKeeper");
@@ -174,8 +285,11 @@ fn main() {
        .system_tray(tray)
        .setup(|app| {
            // Sync LaunchAgent with the saved setting so a toggle stays in effect across reboots.
-           let _ = app; let settings = get_settings().unwrap_or_default();
+           let settings = get_settings().unwrap_or_default();
            let _ = sync_autostart(settings.launch_at_login);
+           // Apply the saved Dock preference at startup (macOS activation policy).
+           #[cfg(target_os = "macos")]
+           app.set_activation_policy(if settings.show_dock { tauri::ActivationPolicy::Regular } else { tauri::ActivationPolicy::Accessory });
            Ok(())
        })
        .on_system_tray_event(|app, event| match event {
@@ -190,8 +304,14 @@ fn main() {
        })
        .on_window_event(|event| {
            if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
-               api.prevent_close();
-               let _ = event.window().hide();
+               // Honour "Run in Menu Bar": keep running in the tray, or quit when disabled.
+               let keep_running = get_settings().map(|s| s.show_menu_bar).unwrap_or(true);
+               if keep_running {
+                   api.prevent_close();
+                   let _ = event.window().hide();
+               } else {
+                   event.window().app_handle().exit(0);
+               }
            }
        })
        .invoke_handler(tauri::generate_handler![
@@ -199,8 +319,10 @@ fn main() {
             get_settings, save_settings, get_logs, append_log, clear_logs,
             get_onboarding_status, set_onboarded, reset_onboarding,
             set_autostart, get_autostart,
-            simulate_disconnect, force_restart_service, restore_connection
+            simulate_disconnect, force_restart_service, restore_connection,
+            check_dhcp_state, deep_network_repair, prompt_reboot,
+            get_radio_state, set_radio, connect_wifi, disconnect_wifi, set_dock_visible
         ])
        .run(tauri::generate_context!())
-       .expect("error while running tauri application");
+        .expect("error while running tauri application");
 }
