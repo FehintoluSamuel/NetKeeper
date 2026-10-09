@@ -4,12 +4,17 @@ version = "3.0.0"
 description = "Keep your MTN networks alive"
 authors = ["NetKeeper"]
 edition = "2021"
+
 [build-dependencies]
 tauri-build = { version = "1.4", features = [] }
+
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.5", features = [ "api-all"] }
+tauri = { version = "1.5", features = [ "api-all", "system-tray"] }
+
 [features]
 default = [ "custom-protocol" ]
 custom-protocol = [ "tauri/custom-protocol" ]
+api-all = [ "tauri/api-all" ]
+system-tray = [ "tauri/system-tray" ]

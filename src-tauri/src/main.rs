@@ -1,4 +1,5 @@
 use tauri::command;
+use tauri::{Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, CustomMenuItem, SystemTrayMenuItem};
 use std::process::Command;
 use serde::{Serialize, Deserialize};
 use std::fs;
@@ -17,13 +18,15 @@ pub struct AppSettings {
     preferred_band: String, block_open: bool, launch_at_login: bool, show_menu_bar: bool, show_dock: bool,
     notify_disconnect: bool, notify_ip_change: bool, ping_router_target: String, ping_dns_target: String, ping_internet_target: String,
     quality_threshold: i32, interface_name: String, preferred_networks: Vec<String>, simulation_mode: bool,
+    #[serde(default = "default_true")] auto_heal: bool,
 }
+fn default_true() -> bool { true }
 impl Default for AppSettings {
     fn default() -> Self {
         Self { auto_reconnect: true, keep_alive: true, keep_alive_interval: "30s".to_string(), reconnect_on_wake: true, auto_switch_strongest: false,
         preferred_band: "Auto".to_string(), block_open: true, launch_at_login: false, show_menu_bar: true, show_dock: true,
         notify_disconnect: true, notify_ip_change: false, ping_router_target: "".to_string(), ping_dns_target: "1.1.1.1".to_string(), ping_internet_target: "8.8.8.8".to_string(),
-        quality_threshold: 30, interface_name: "en".to_string(), preferred_networks: vec![], simulation_mode: true, }
+        quality_threshold: 30, interface_name: "en".to_string(), preferred_networks: vec![], simulation_mode: true, auto_heal: true, }
     }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -38,9 +41,28 @@ fn onboarded_path() -> PathBuf { config_dir().join(".onboarded") }
 #[command] fn set_onboarded() -> Result<String, String> { fs::write(onboarded_path(), "1").map_err(|e| e.to_string())?; Ok("onboarded".to_string()) }
 #[command] fn reset_onboarding() -> Result<String, String> { let p=onboarded_path(); if p.exists() { let _=fs::remove_file(&p); } Ok("reset".to_string()) }
 
+// Auto-start at login uses a macOS LaunchAgent so the app comes back after reboot.
+fn launch_agent_path() -> PathBuf { let home=std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); PathBuf::from(home).join("Library").join("LaunchAgents").join("com.netkeeper.app.plist") }
+fn is_packaged_app() -> bool { std::env::current_exe().map(|e| e.to_string_lossy().contains(".app/")).unwrap_or(false) }
+fn sync_autostart(enabled: bool) -> Result<String, String> {
+    if !is_packaged_app() { return Ok("skipped: only manages LaunchAgent from the installed app".to_string()); }
+    let path=launch_agent_path();
+    if enabled {
+        let exe=std::env::current_exe().map_err(|e| e.to_string())?;
+        let plist=format!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>Label</key>\n\t<string>com.netkeeper.app</string>\n\t<key>ProgramArguments</key>\n\t<array>\n\t\t<string>{}</string>\n\t</array>\n\t<key>RunAtLoad</key>\n\t<true/>\n\t<key>ProcessType</key>\n\t<string>Background</string>\n</dict>\n</plist>\n", exe.display());
+        fs::write(&path, plist).map_err(|e| e.to_string())?;
+    } else if path.exists() {
+        fs::remove_file(&path).map_err(|e| e.to_string())?;
+    }
+    Ok(if enabled { "enabled" } else { "disabled" }.to_string())
+}
+#[command] fn set_autostart(enabled: bool) -> Result<String, String> { sync_autostart(enabled) }
+#[command] fn get_autostart() -> Result<bool, String> { Ok(launch_agent_path().exists()) }
+
 #[command] fn get_settings() -> Result<AppSettings, String> { let path=settings_path(); if path.exists() { match fs::read_to_string(&path) { Ok(s)=>Ok(serde_json::from_str(&s).unwrap_or_default()), Err(_)=>Ok(AppSettings::default()) } } else { Ok(AppSettings::default()) } }
 #[command] fn save_settings(settings: AppSettings) -> Result<String, String> {
     let path=settings_path(); let json=serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?; fs::write(&path, json).map_err(|e| e.to_string())?;
+    let _ = sync_autostart(settings.launch_at_login);
     Ok("saved".to_string())
 }
 
@@ -138,11 +160,45 @@ fn detect_wifi_interface() -> String {
 #[command] fn restore_connection(interface: String, ssid: String) -> Result<String, String> { let _=Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {} on", interface)).output(); Ok(format!("Restore attempted for {} on {}", ssid, interface)) }
 
 fn main() {
+    let show_item = CustomMenuItem::new("show".to_string(), "Show NetKeeper");
+    let hide_item = CustomMenuItem::new("hide".to_string(), "Hide to Tray");
+    let quit_item = CustomMenuItem::new("quit".to_string(), "Quit");
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(show_item)
+        .add_item(hide_item)
+        .add_native_item(SystemTrayMenuItem::Separator)
+        .add_item(quit_item);
+    let tray = SystemTray::new().with_menu(tray_menu);
+
     tauri::Builder::default()
+       .system_tray(tray)
+       .setup(|app| {
+           // Sync LaunchAgent with the saved setting so a toggle stays in effect across reboots.
+           let _ = app; let settings = get_settings().unwrap_or_default();
+           let _ = sync_autostart(settings.launch_at_login);
+           Ok(())
+       })
+       .on_system_tray_event(|app, event| match event {
+           SystemTrayEvent::LeftClick { .. } => { if let Some(w) = app.get_window("main") { let _ = w.show(); let _ = w.set_focus(); } }
+           SystemTrayEvent::MenuItemClick { id, .. } => match id.as_ref() {
+               "show" => { if let Some(w) = app.get_window("main") { let _ = w.show(); let _ = w.set_focus(); } }
+               "hide" => { if let Some(w) = app.get_window("main") { let _ = w.hide(); } }
+               "quit" => app.exit(0),
+               _ => {}
+           },
+           _ => {}
+       })
+       .on_window_event(|event| {
+           if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
+               api.prevent_close();
+               let _ = event.window().hide();
+           }
+       })
        .invoke_handler(tauri::generate_handler![
             scan_wifi, get_current_wifi, get_wifi_interface, emergency_reset, get_ip_info, ping_host, get_link_stats,
             get_settings, save_settings, get_logs, append_log, clear_logs,
             get_onboarding_status, set_onboarded, reset_onboarding,
+            set_autostart, get_autostart,
             simulate_disconnect, force_restart_service, restore_connection
         ])
        .run(tauri::generate_context!())

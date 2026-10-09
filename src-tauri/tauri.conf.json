@@ -3,7 +3,8 @@
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "distDir": "../dist",
+    "features": ["api-all", "system-tray"]
   },
   "package": {
     "productName": "NetKeeper",
@@ -30,6 +31,10 @@
         "icons/icon.ico"
       ],
       "targets": "all"
+    },
+    "systemTray": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": true
     },
     "windows": [
       {

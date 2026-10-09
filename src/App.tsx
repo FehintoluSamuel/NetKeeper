@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import {
   LayoutDashboard, Radio, Activity, Settings, ScrollText,
@@ -13,8 +13,29 @@ type AppSettings = {
   auto_reconnect: boolean; keep_alive: boolean; keep_alive_interval: string; reconnect_on_wake: boolean; auto_switch_strongest: boolean;
   preferred_band: string; block_open: boolean; launch_at_login: boolean; show_menu_bar: boolean; show_dock: boolean;
   notify_disconnect: boolean; notify_ip_change: boolean; ping_router_target: string; ping_dns_target: string; ping_internet_target: string;
-  quality_threshold: number; interface_name: string; preferred_networks: string[]; simulation_mode: boolean;
+  quality_threshold: number; interface_name: string; preferred_networks: string[]; simulation_mode: boolean; auto_heal: boolean;
 };
+
+function mapNetworks(raw: any[], currentName: string): Network[] {
+  const mapped: Network[] = []; const seen = new Set<string>();
+  for(const r of raw){
+    const key = r.ssid+"|"+r.channel+"|"+r.rssi;
+    if(seen.has(key)) continue;
+    seen.add(key);
+    mapped.push({ ssid: r.ssid, bssid: r.bssid, rssi: r.rssi, channel: r.channel, security: r.security,
+      signal: r.rssi > -55? 4 : r.rssi > -70? 3 : r.rssi > -80? 2 : 1,
+      current: currentName.length>0 && r.ssid === currentName
+    });
+  }
+  return mapped;
+}
+
+function parseInterval(s: string): number {
+  const m = /^(\d+)(s|m)$/.exec(s || "");
+  if (!m) return 30000;
+  const n = parseInt(m[1]);
+  return m[2] === "m" ? n*60000 : n*1000;
+}
 
 function HelpPage({ settings }: { settings: AppSettings }){
   return (
@@ -255,11 +276,13 @@ export default function App(){
     auto_reconnect: true, keep_alive: true, keep_alive_interval: "30s", reconnect_on_wake: true, auto_switch_strongest: false,
     preferred_band: "Auto", block_open: true, launch_at_login: false, show_menu_bar: true, show_dock: true,
     notify_disconnect: true, notify_ip_change: false, ping_router_target: "", ping_dns_target: "1.1.1.1", ping_internet_target: "8.8.8.8",
-    quality_threshold: 30, interface_name: "en0", preferred_networks: [], simulation_mode: true
+    quality_threshold: 30, interface_name: "en0", preferred_networks: [], simulation_mode: true, auto_heal: true
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
+  const [lastKeepAlive, setLastKeepAlive] = useState<{ at: string; ok: boolean }>({ at: "--", ok: false });
+  const wasDownRef = useRef(false);
 
   const current = networks.find(n=>n.current) || networks[0];
   const hasSignal = networks.length>0;
@@ -277,7 +300,8 @@ export default function App(){
   const twoFourG = networks.length - fiveG;
 
   useEffect(()=>{ (async()=>{
-    try{ const s = await invoke<AppSettings>("get_settings"); setSettings(s); }catch{}
+    try{ const s = await invoke<AppSettings>("get_settings"); setSettings(s); setKeepAlive(s.keep_alive); setAutoHeal(s.auto_heal!==undefined? s.auto_heal : true); }catch{}
+    try{ const autoStart = await invoke<boolean>("get_autostart"); setSettings(s=>({...s, launch_at_login: autoStart})); }catch{}
     try{ const iface = await invoke<string>("get_wifi_interface"); if(iface) setSettings(s=>(s.interface_name===""||s.interface_name==="en"||s.interface_name==="en0")?{...s, interface_name: iface}:s); }catch{}
     try{ const l = await invoke<LogEntry[]>("get_logs"); if(l && l.length>0) setLogs(l); }catch{}
     try{ const onboarded = await invoke<boolean>("get_onboarding_status"); const local = localStorage.getItem("netkeeper_onboarded"); if(!onboarded && local!=="true") setShowOnboarding(true); }catch{ const local = localStorage.getItem("netkeeper_onboarded"); if(local!=="true") setShowOnboarding(true); }
@@ -307,6 +331,8 @@ export default function App(){
   },[]);
 
   useEffect(()=>{
+    if(!keepAlive){ setLat({router:{ms:null,ok:false},dns:{ms:null,ok:false},internet:{ms:null,ok:false}}); return; }
+    const intervalMs = parseInterval(settings.keep_alive_interval);
     const runPings = async ()=>{
       const res:any = {};
       const targets:any[] = [];
@@ -316,10 +342,22 @@ export default function App(){
       targets.push(["internet", settings.ping_internet_target]);
       for(const [k,h] of targets){ try{ res[k] = await invoke("ping_host",{host:h}); }catch{ res[k] = {ms:null,ok:false}; } }
       setLat(res);
+      const targetsOk = targets.length>0 && targets.every(([k]:any)=>res[k] && res[k].ok);
+      setLastKeepAlive({ at: new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"}), ok: targetsOk });
+      if(targets.length>0){
+        if(!targetsOk && !wasDownRef.current){
+          wasDownRef.current = true;
+          await addLog("warn","Keep-Alive","no response from "+targets.map(([,h]:any)=>h).join(", ")+" - "+settings.interface_name+" may be down");
+        } else if(targetsOk && wasDownRef.current){
+          wasDownRef.current = false;
+          await addLog("success","Keep-Alive","responses back from "+targets.map(([,h]:any)=>h).join(", "));
+        }
+      }
     };
-    const id = setInterval(runPings, 8000);
+    runPings();
+    const id = setInterval(runPings, intervalMs);
     return ()=>clearInterval(id);
-  },[ipInfo.router, settings.ping_router_target, settings.ping_dns_target, settings.ping_internet_target]);
+  },[keepAlive, settings.keep_alive_interval, ipInfo.router, settings.ping_router_target, settings.ping_dns_target, settings.ping_internet_target]);
 
   const addLog = async (level: string, source: string, message: string, detail?: string) => {
     const entry: LogEntry = { id: Date.now().toString()+Math.random().toString(36).slice(2,4), timestamp: new Date().toLocaleTimeString(), time_ms: Date.now(), level, source, message, detail };
@@ -385,6 +423,46 @@ export default function App(){
     try{ await invoke("restore_connection",{interface: settings.interface_name, ssid: current?.ssid || ""}); setIsSimulating(false); setTimeout(doScan,2000); }catch{}
   };
 
+  useEffect(()=>{
+    if(!autoHeal) return;
+    let armed = false;
+    let lastReset = 0;
+    const monitor = async ()=>{
+      try{
+        const raw:any[] = await invoke<any[]>("scan_wifi");
+        if(raw.length===0){
+          if(!armed){
+            armed = true;
+            await addLog("warn","Auto-Heal","0 networks detected on "+settings.interface_name+" - rechecking in 5s");
+            setTimeout(async ()=>{
+              try{
+                const recheck:any[] = await invoke<any[]>("scan_wifi");
+                if(recheck.length===0){
+                  const cooldown = Date.now()-lastReset > 60000;
+                  if(cooldown){
+                    lastReset = Date.now();
+                    await addLog("warn","Auto-Heal","still 0 networks - resetting "+settings.interface_name);
+                    setIsResetting(true);
+                    try{ const r = await invoke<string>("emergency_reset"); await addLog("success","Auto-Heal",r); setIsSimulating(false); setTimeout(()=>{ setIsResetting(false); doScan(); }, 2500); }catch(e:any){ await addLog("error","Auto-Heal","reset FAIL "+e); setIsResetting(false); }
+                  } else {
+                    await addLog("warn","Auto-Heal","still 0 networks - skipping reset (cooldown 60s)");
+                  }
+                } else {
+                  setNetworks(mapNetworks(recheck, (await invoke<string>("get_current_wifi")).replace(/^Current Wi-Fi Network:\s*/i,"").trim()));
+                }
+              }catch{}
+              armed = false;
+            }, 5000);
+          }
+        } else {
+          if(armed) armed = false;
+        }
+      }catch{}
+    };
+    const id = setInterval(monitor, 20000);
+    return ()=>clearInterval(id);
+  },[autoHeal]);
+
   return (
     <div className="w-full h-screen bg-white flex text-[13px] font-[-apple-system,BlinkMacSystemFont,SF_Pro_Text,Helvetica,Arial,sans-serif] antialiased">
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap'); .mono{font-family:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;}`}</style>
@@ -442,7 +520,7 @@ export default function App(){
                 <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">CURRENT SSID</div><div className="mt-2 font-[700] text-[14px]">{currentSsid.replace('Current Wi-Fi Network: ','').slice(0,22) || 'Not connected'}</div><div className="mono text-[11px] text-[#8e8e93] mt-1">BSSID {ipInfo.bssid} - {ipInfo.band} - {ipInfo.security}</div><div className="mt-2 h-1.5 bg-black/10 rounded-full overflow-hidden"><div className="h-full bg-[#0a84ff] rounded-full" style={{width: quality+"%"}}></div></div></div>
                 <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">IP AND ROUTER</div><div className="mono text-[12px] mt-2 leading-5">Local {ipInfo.ip}<br/>Router {ipInfo.router}<br/>Subnet {ipInfo.subnet}<br/>Public {ipInfo.public_ip}<br/>DNS {(ipInfo.dns[0]||"1.1.1.1")}</div></div>
                 <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">RADIO AND QUALITY - chart</div><div className="mt-2 flex items-center gap-2"><span className={`w-2 h-2 rounded-full ${hasSignal?'bg-[#30d158]':'bg-[#ff3b30]'}`}/><span className="font-[600]">{hasSignal?'ON':'OFF'} - en0 - {quality}%</span></div><div className="mt-3 flex items-end gap-0.5 h-[40px] bg-[#f5f5f7] rounded-[6px] p-1">{signalHistory.map((v,i)=><div key={i} className="flex-1 bg-[#0a84ff] rounded-t" style={{height: v+"%"}}></div>)}</div><div className="mono text-[10px] text-[#8e8e93] mt-1">Signal history last 60s - all vendors</div></div>
-                <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">NETWORKS STATS - all types</div><div className="mono text-[12px] mt-2 leading-5">Total {networks.length} found - all types<br/>Avg {avgRssi} dBm<br/>Best {bestNetwork?.ssid||"--"} {bestNetwork?.rssi||0}dBm<br/>Current {current?.ssid||"--"}<br/>KA {keepAlive?'30s':'OFF'}</div></div>
+                <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">NETWORKS STATS - all types</div><div className="mono text-[12px] mt-2 leading-5">Total {networks.length} found - all types<br/>Avg {avgRssi} dBm<br/>Best {bestNetwork?.ssid||"--"} {bestNetwork?.rssi||0}dBm<br/>Current {current?.ssid||"--"}<br/>KA {keepAlive? settings.keep_alive_interval : 'OFF'}</div></div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="font-[600] text-[13px] flex items-center gap-2"><Signal className="w-4 h-4"/>Channel distribution - all bands</div><div className="mt-3 space-y-2">{[1,6,11,36,40,44,149,153].map(ch=>{ const count=networks.filter(n=>n.channel===ch).length; return (<div key={ch} className="flex items-center gap-2"><span className="mono text-[11px] w-8">{ch}</span><div className="flex-1 h-2 bg-black/10 rounded-full"><div className="h-2 bg-[#0a84ff] rounded-full" style={{width: Math.min(100, count*25)+"%"}}></div></div><span className="mono text-[11px]">{count}</span></div>) })}</div></div>
@@ -450,7 +528,7 @@ export default function App(){
                 <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="font-[600] text-[13px] flex items-center gap-2"><Timer className="w-4 h-4"/>Keep alive and logs - rich</div><div className="mono text-[11px] mt-2 leading-6">KA interval {settings.keep_alive_interval} - {keepAlive?'ON':'OFF'}<br/>Auto join {autoJoin?'ON':'OFF'}<br/>Auto heal {autoHeal?'ON':'OFF'}<br/>Logs {logs.length} events<br/>Uptime {ipInfo.uptime}<br/>TX {ipInfo.tx_rate}<br/>Interface {settings.interface_name}</div></div>
               </div>
               <div className="grid grid-cols-4 gap-3">
-                <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">LATENCY - LIVE PING</div><div className="mono text-[12px] mt-2 leading-6">{[{k:"Router",v:lat.router},{k:"DNS",v:lat.dns},{k:"Internet",v:lat.internet}].map(x=>(<div key={x.k} className="flex items-center justify-between"><span className="text-[#6e6e73]">{x.k}</span><span className="flex items-center gap-1.5 font-[700]"><span className={`w-2 h-2 rounded-full ${x.v&&x.v.ok?'bg-[#30d158]':'bg-[#ff3b30]'}`}/>{x.v&&x.v.ms? x.v.ms+" ms":"--"}</span></div>))}</div><div className="mono text-[10px] text-[#8e8e93] mt-2">Ping 1 packet - refreshes every 8s</div></div>
+                <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">LATENCY - LIVE PING</div><div className="mono text-[12px] mt-2 leading-6">{[{k:"Router",v:lat.router},{k:"DNS",v:lat.dns},{k:"Internet",v:lat.internet}].map(x=>(<div key={x.k} className="flex items-center justify-between"><span className="text-[#6e6e73]">{x.k}</span><span className="flex items-center gap-1.5 font-[700]"><span className={`w-2 h-2 rounded-full ${x.v&&x.v.ok?'bg-[#30d158]':'bg-[#ff3b30]'}`}/>{x.v&&x.v.ms? x.v.ms+" ms":"--"}</span></div>))}</div><div className="mono text-[10px] text-[#8e8e93] mt-2">Ping 1 packet - refreshes every {keepAlive? settings.keep_alive_interval : "OFF"} - last {lastKeepAlive.at} {lastKeepAlive.ok?'OK':'FAIL'}</div></div>
                 <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">BAND SPLIT - ALL NETWORKS</div><div className="mt-3 space-y-2">{[{b:"2.4 GHz",n:twoFourG,g:"#0a84ff"},{b:"5 GHz",n:fiveG,g:"#30d158"}].map(x=>(<div key={x.b}><div className="flex justify-between mono text-[11px]"><span>{x.b}</span><span className="font-[700]">{x.n} nets</span></div><div className="mt-1 h-2 bg-black/10 rounded-full"><div className="h-2 rounded-full" style={{width:(networks.length?Math.round(x.n/networks.length*100):0)+"%",background:x.g}}/></div></div>))}</div><div className="mono text-[10px] text-[#8e8e93] mt-2">{twoFourG} on 2.4GHz - {fiveG} on 5GHz - all vendors</div></div>
                 <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">SIGNAL EXTREMES</div><div className="mono text-[12px] mt-2 leading-5">Strongest {strongest?.ssid.slice(0,16)||"--"} <span className="font-[700] text-[#1a9e4b]">{strongest?.rssi||0}dBm</span><br/>Weakest {weakest?.ssid.slice(0,16)||"--"} <span className="font-[700] text-[#d1272d]">{weakest?.rssi||0}dBm</span><br/>Range {networks.length>1?(strongest?.rssi||0)-(weakest?.rssi||0)+" dBm":"--"}<br/>Avg {avgRssi} dBm {networks.length>1?<>- Median {medianRssi} dBm</>:null}</div></div>
                 <div className="bg-white border border-black/[0.08] rounded-[14px] p-4"><div className="mono text-[11px] text-[#8e8e93] font-[700] tracking-widest">OPEN NETWORKS - WARN</div><div className="mt-2 flex items-center gap-2"><span className={`w-2 h-2 rounded-full ${openNets.length?'bg-[#ff9f0a]':'bg-[#30d158]'}`}/><span className="font-[700] text-[14px]">{openNets.length} open</span><span className="mono text-[11px] text-[#8e8e93]">/ {networks.length} nets</span></div><div className="mono text-[11px] mt-1 leading-5 text-[#6e6e73]">{networks.length? (openNets.slice(0,3).map(o=>o.ssid).join(", ")||"All encrypted") + (openNets.length>3?" +"+(openNets.length-3)+" more":""):"No networks yet"}</div><div className="mono text-[10px] text-[#8e8e93] mt-1">Unsecured - avoid auto-join</div></div>
@@ -529,8 +607,8 @@ export default function App(){
               <div className="bg-white border border-black/[0.08] rounded-[14px] divide-y divide-black/[0.06]">
                 {[
                   {label:"Auto-Join Best Network", desc:"Connect to strongest known SSID automatically - all vendors - MTN, Starlink, any", val:autoJoin, set:setAutoJoin},
-                  {label:"Keep-Alive Ping", desc:"Ping "+settings.ping_dns_target+" every "+settings.keep_alive_interval+" to prevent sleep disconnect", val:keepAlive, set:setKeepAlive},
-                  {label:"Auto-Heal Radio Crash", desc:"If 0 networks detected, auto reset "+settings.interface_name+" after 5s - all interfaces - all vendors", val:autoHeal, set:setAutoHeal},
+                  {label:"Keep-Alive Ping", desc:"Ping "+settings.ping_dns_target+" every "+settings.keep_alive_interval+" to prevent sleep disconnect", val:keepAlive, set:(v:boolean)=>{ setKeepAlive(v); setSettings(s=>({...s, keep_alive: v})); }},
+                  {label:"Auto-Heal Radio Crash", desc:"If 0 networks detected, auto reset "+settings.interface_name+" after 5s - all interfaces - all vendors", val:autoHeal, set:(v:boolean)=>{ setAutoHeal(v); setSettings(s=>({...s, auto_heal: v})); }},
                   {label:"Simulation Mode (Demo)", desc:"Show amber demo bar with Simulate Disconnect + Force Restart", val:settings.simulation_mode, set:(v:boolean)=>setSettings(s=>({...s, simulation_mode: v}))},
                 ].map(s=>(
                   <div key={s.label} className="flex items-center justify-between p-4"><div><div className="font-[600] text-[13px]">{s.label} {saveStatus && s.label.includes("Simulation") && <span className="text-[10px] bg-[#0a84ff] text-white px-1.5 py-0.5 rounded-full ml-2">{saveStatus}</span>}</div><div className="text-[11px] text-[#8e8e93] mt-0.5 leading-[1.3]">{s.desc}</div></div><button onClick={()=>s.set(!s.val)} className={`w-11 h-6 rounded-full p-0.5 transition ${s.val?'bg-[#0a84ff]':'bg-black/20'}`}><div className={`w-5 h-5 rounded-full bg-white shadow transition ${s.val?'translate-x-5':'translate-x-0'}`}/></button></div>
@@ -557,8 +635,8 @@ export default function App(){
               </div>
               <div className="bg-white border border-black/[0.08] rounded-[14px] divide-y divide-black/[0.06]">
                 {[
-                  {label:"Launch at Login", desc:"Start NetKeeper automatically when you log in", val:settings.launch_at_login, set:(v:boolean)=>setSettings(s=>({...s, launch_at_login: v}))},
-                  {label:"Show Menu Bar Icon", desc:"Keep the menu bar status icon visible", val:settings.show_menu_bar, set:(v:boolean)=>setSettings(s=>({...s, show_menu_bar: v}))},
+                  {label:"Launch at Login", desc:"Start NetKeeper automatically after reboot - uses macOS LaunchAgent", val:settings.launch_at_login, set:(v:boolean)=>setSettings(s=>({...s, launch_at_login: v}))},
+                  {label:"Run in Menu Bar (Tray)", desc:"Keep NetKeeper running in the menu bar when the window is closed - keeps pinging every 30s", val:settings.show_menu_bar, set:(v:boolean)=>setSettings(s=>({...s, show_menu_bar: v}))},
                   {label:"Show Dock Icon", desc:"Show the NetKeeper icon in the Dock", val:settings.show_dock, set:(v:boolean)=>setSettings(s=>({...s, show_dock: v}))},
                 ].map(s=>(
                   <div key={s.label} className="flex items-center justify-between p-4"><div><div className="font-[600] text-[13px]">{s.label}</div><div className="text-[11px] text-[#8e8e93] mt-0.5 leading-[1.3]">{s.desc}</div></div><button onClick={()=>s.set(!s.val)} className={`w-11 h-6 rounded-full p-0.5 transition ${s.val?'bg-[#0a84ff]':'bg-black/20'}`}><div className={`w-5 h-5 rounded-full bg-white shadow transition ${s.val?'translate-x-5':'translate-x-0'}`}/></button></div>
@@ -588,7 +666,7 @@ export default function App(){
         <div className="h-[28px] bg-white border-t border-black/[0.08] flex items-center justify-between px-5 shrink-0">
           <div className="flex items-center gap-3 mono text-[11px] text-[#8e8e93]">
             <span className="font-[700] text-[#1d1d1f]">NetKeeper v1.0 - Build</span>
-            <span className="hidden sm:inline">{settings.interface_name} - {currentSsid.replace('Current Wi-Fi Network: ','').slice(0,18) || 'Not connected'} - {networks.length} nets - all types - {logs.length} logs - KA {keepAlive?'30s':'OFF'}</span>
+            <span className="hidden sm:inline">{settings.interface_name} - {currentSsid.replace('Current Wi-Fi Network: ','').slice(0,18) || 'Not connected'} - {networks.length} nets - all types - {logs.length} logs - KA {keepAlive? settings.keep_alive_interval : 'OFF'}</span>
           </div>
           <div className="flex items-center gap-3 mono text-[11px] text-[#8e8e93]">
             <span className="flex items-center gap-1.5"><span className={`w-2 h-2 rounded-full ${hasSignal?'bg-[#30d158]':'bg-[#ff3b30]'}`}/>{hasSignal?'Secure':'Offline'}</span>
