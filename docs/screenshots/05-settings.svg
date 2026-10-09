@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1280" height="820" fill="#f5f5f7"/>
+  <rect x="40" y="40" width="1200" height="740" rx="14" fill="#ffffff" stroke="#e5e5ea"/>
+  <rect x="40" y="40" width="1200" height="44" rx="14" fill="#fbfbfd"/>
+  <rect x="40" y="70" width="1200" height="14" fill="#fbfbfd"/>
+  <circle cx="68" cy="62" r="6" fill="#ff5f57"/><circle cx="90" cy="62" r="6" fill="#febc2e"/><circle cx="112" cy="62" r="6" fill="#28c840"/>
+  <text x="640" y="67" text-anchor="middle" font-size="13" fill="#8e8e93">NetKeeper</text>
+  <rect x="40" y="84" width="200" height="696" fill="#fbfbfd"/>
+  <rect x="240" y="84" width="1000" height="696" fill="#ffffff"/>
+  <text x="140" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#1d1d1f">SETTINGS</text>
+  <rect x="64" y="248" width="152" height="1" fill="#e5e5ea"/>
+  <text x="140" y="150" text-anchor="middle" font-size="11" fill="#8e8e93">Welcome</text>
+  <text x="140" y="174" text-anchor="middle" font-size="11" fill="#8e8e93">Overview</text>
+  <text x="140" y="198" text-anchor="middle" font-size="11" fill="#8e8e93">Networks</text>
+  <text x="140" y="222" text-anchor="middle" font-size="11" fill="#8e8e93">Diagnostics</text>
+  <text x="140" y="296" text-anchor="middle" font-size="11" fill="#8e8e93">Recovery Log</text>
+  <text x="140" y="320" text-anchor="middle" font-size="11" fill="#8e8e93">Help</text>
+  <text x="280" y="130" font-size="26" font-weight="700" fill="#1d1d1f">Settings</text>
+  <g>
+    <rect x="280" y="170" width="288" height="380" rx="12" fill="#fbfbfd" stroke="#e5e5ea"/>
+    <text x="302" y="200" font-size="12" font-weight="700" fill="#1d1d1f">Connection</text>
+    <g font-size="12" fill="#1d1d1f">
+      <text x="302" y="240">Auto reconnect</text><rect x="500" y="228" width="40" height="22" rx="11" fill="#30d158"/><circle cx="529" cy="239" r="9" fill="#fff"/>
+      <text x="302" y="282">Auto-switch strongest</text><rect x="500" y="270" width="40" height="22" rx="11" fill="#30d158"/><circle cx="529" cy="281" r="9" fill="#fff"/>
+      <text x="302" y="324">Reconnect on wake</text><rect x="500" y="312" width="40" height="22" rx="11" fill="#30d158"/><circle cx="529" cy="323" r="9" fill="#fff"/>
+      <text x="302" y="366">Block open networks</text><rect x="500" y="354" width="40" height="22" rx="11" fill="#d1d1d6"/><circle cx="511" cy="365" r="9" fill="#fff"/>
+    </g>
+  </g>
+  <g>
+    <rect x="584" y="170" width="288" height="380" rx="12" fill="#fbfbfd" stroke="#e5e5ea"/>
+    <text x="606" y="200" font-size="12" font-weight="700" fill="#1d1d1f">Keep-alive &amp; notifications</text>
+    <g font-size="12" fill="#1d1d1f">
+      <text x="606" y="240">Keep-alive</text><rect x="804" y="228" width="40" height="22" rx="11" fill="#30d158"/><circle cx="833" cy="239" r="9" fill="#fff"/>
+      <text x="606" y="282">Interval · 30 s</text>
+      <text x="606" y="324">Notify on disconnect</text><rect x="804" y="312" width="40" height="22" rx="11" fill="#30d158"/><circle cx="833" cy="323" r="9" fill="#fff"/>
+      <text x="606" y="366">Notify on IP change</text><rect x="804" y="354" width="40" height="22" rx="11" fill="#d1d1d6"/><circle cx="815" cy="365" r="9" fill="#fff"/>
+    </g>
+  </g>
+  <g>
+    <rect x="888" y="170" width="312" height="380" rx="12" fill="#fff5f5" stroke="#ffd5d5"/>
+    <text x="910" y="200" font-size="12" font-weight="700" fill="#ff453a">Deep Network Repair</text>
+    <text x="910" y="228" font-size="11" fill="#8e8e93">Resets macOS network plists</text>
+    <text x="910" y="270" font-size="12" fill="#1d1d1f">Auto deep repair</text>
+    <rect x="1130" y="258" width="40" height="22" rx="11" fill="#d1d1d6"/><circle cx="1141" cy="269" r="9" fill="#fff"/>
+    <rect x="910" y="300" width="270" height="40" rx="20" fill="#ff453a"/>
+    <text x="1045" y="325" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">Run Deep Repair…</text>
+    <text x="910" y="372" font-size="11" fill="#8e8e93">Requires admin · prompts reboot</text>
+  </g>
+  <rect x="280" y="580" width="920" height="150" rx="12" fill="#fbfbfd" stroke="#e5e5ea"/>
+  <text x="640" y="650" text-anchor="middle" font-size="22" font-weight="700" fill="#c7c7cc">05 · Settings (repair &amp; recovery)</text>
+  <text x="640" y="680" text-anchor="middle" font-size="13" fill="#aeaeb2">Placeholder — replace with a real capture (see docs/screenshots/README.md)</text>
+</svg>

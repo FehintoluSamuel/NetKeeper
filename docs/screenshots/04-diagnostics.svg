@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1280" height="820" fill="#f5f5f7"/>
+  <rect x="40" y="40" width="1200" height="740" rx="14" fill="#ffffff" stroke="#e5e5ea"/>
+  <rect x="40" y="40" width="1200" height="44" rx="14" fill="#fbfbfd"/>
+  <rect x="40" y="70" width="1200" height="14" fill="#fbfbfd"/>
+  <circle cx="68" cy="62" r="6" fill="#ff5f57"/><circle cx="90" cy="62" r="6" fill="#febc2e"/><circle cx="112" cy="62" r="6" fill="#28c840"/>
+  <text x="640" y="67" text-anchor="middle" font-size="13" fill="#8e8e93">NetKeeper</text>
+  <rect x="40" y="84" width="200" height="696" fill="#fbfbfd"/>
+  <rect x="240" y="84" width="1000" height="696" fill="#ffffff"/>
+  <text x="140" y="248" text-anchor="middle" font-size="11" font-weight="700" fill="#1d1d1f">DIAGNOSTICS</text>
+  <rect x="64" y="224" width="152" height="1" fill="#e5e5ea"/>
+  <text x="140" y="150" text-anchor="middle" font-size="11" fill="#8e8e93">Welcome</text>
+  <text x="140" y="174" text-anchor="middle" font-size="11" fill="#8e8e93">Overview</text>
+  <text x="140" y="198" text-anchor="middle" font-size="11" fill="#8e8e93">Networks</text>
+  <text x="140" y="272" text-anchor="middle" font-size="11" fill="#8e8e93">Settings</text>
+  <text x="140" y="296" text-anchor="middle" font-size="11" fill="#8e8e93">Recovery Log</text>
+  <text x="140" y="320" text-anchor="middle" font-size="11" fill="#8e8e93">Help</text>
+  <text x="280" y="130" font-size="26" font-weight="700" fill="#1d1d1f">Diagnostics</text>
+  <rect x="280" y="160" width="600" height="250" rx="12" fill="#fbfbfd" stroke="#e5e5ea"/>
+  <text x="300" y="190" font-size="12" font-weight="600" fill="#1d1d1f">Signal quality</text>
+  <line x1="300" y1="230" x2="860" y2="230" stroke="#e5e5ea"/>
+  <line x1="300" y1="290" x2="860" y2="290" stroke="#e5e5ea"/>
+  <path d="M300 380 L370 350 L440 360 L510 320 L580 330 L650 300 L720 315 L790 285 L860 295" fill="none" stroke="#0a84ff" stroke-width="2.5"/>
+  <line x1="300" y1="340" x2="860" y2="340" stroke="#ff453a" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="866" y="344" font-size="10" fill="#ff453a">threshold</text>
+  <rect x="900" y="160" width="300" height="250" rx="12" fill="#fbfbfd" stroke="#e5e5ea"/>
+  <text x="920" y="190" font-size="12" font-weight="600" fill="#1d1d1f">Latency</text>
+  <path d="M920 360 L980 330 L1040 345 L1100 310 L1160 325 L1190 300" fill="none" stroke="#30d158" stroke-width="2.5"/>
+  <line x1="920" y1="330" x2="1190" y2="330" stroke="#8e8e93" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="1160" y="348" font-size="10" fill="#8e8e93">avg</text>
+  <rect x="280" y="440" width="920" height="240" rx="12" fill="#fbfbfd" stroke="#e5e5ea"/>
+  <text x="640" y="545" text-anchor="middle" font-size="22" font-weight="700" fill="#c7c7cc">04 · Diagnostics (charts)</text>
+  <text x="640" y="575" text-anchor="middle" font-size="13" fill="#aeaeb2">Placeholder — replace with a real capture (see docs/screenshots/README.md)</text>
+</svg>

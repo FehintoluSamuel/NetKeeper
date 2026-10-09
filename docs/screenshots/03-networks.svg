@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1280" height="820" fill="#f5f5f7"/>
+  <rect x="40" y="40" width="1200" height="740" rx="14" fill="#ffffff" stroke="#e5e5ea"/>
+  <rect x="40" y="40" width="1200" height="44" rx="14" fill="#fbfbfd"/>
+  <rect x="40" y="70" width="1200" height="14" fill="#fbfbfd"/>
+  <circle cx="68" cy="62" r="6" fill="#ff5f57"/><circle cx="90" cy="62" r="6" fill="#febc2e"/><circle cx="112" cy="62" r="6" fill="#28c840"/>
+  <text x="640" y="67" text-anchor="middle" font-size="13" fill="#8e8e93">NetKeeper</text>
+  <rect x="40" y="84" width="200" height="696" fill="#fbfbfd"/>
+  <rect x="240" y="84" width="1000" height="696" fill="#ffffff"/>
+  <text x="140" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#1d1d1f">NETWORKS</text>
+  <rect x="64" y="200" width="152" height="1" fill="#e5e5ea"/>
+  <text x="140" y="150" text-anchor="middle" font-size="11" fill="#8e8e93">Welcome</text>
+  <text x="140" y="174" text-anchor="middle" font-size="11" fill="#8e8e93">Overview</text>
+  <text x="140" y="248" text-anchor="middle" font-size="11" fill="#8e8e93">Diagnostics</text>
+  <text x="140" y="272" text-anchor="middle" font-size="11" fill="#8e8e93">Settings</text>
+  <text x="140" y="296" text-anchor="middle" font-size="11" fill="#8e8e93">Recovery Log</text>
+  <text x="140" y="320" text-anchor="middle" font-size="11" fill="#8e8e93">Help</text>
+  <text x="280" y="130" font-size="26" font-weight="700" fill="#1d1d1f">Networks</text>
+  <rect x="1010" y="108" width="200" height="36" rx="18" fill="#0a84ff"/>
+  <text x="1110" y="131" text-anchor="middle" font-size="13" font-weight="600" fill="#ffffff">Scan networks</text>
+  <rect x="280" y="180" width="920" height="34" fill="#fbfbfd"/>
+  <text x="300" y="202" font-size="11" font-weight="700" fill="#8e8e93">SSID</text>
+  <text x="620" y="202" font-size="11" font-weight="700" fill="#8e8e93">BSSID</text>
+  <text x="840" y="202" font-size="11" font-weight="700" fill="#8e8e93">RSSI</text>
+  <text x="940" y="202" font-size="11" font-weight="700" fill="#8e8e93">CHANNEL</text>
+  <text x="1080" y="202" font-size="11" font-weight="700" fill="#8e8e93">SECURITY</text>
+  <g font-size="13" fill="#1d1d1f">
+    <text x="300" y="246">Home-5G</text><text x="620" y="246" fill="#8e8e93">a4:2b:8c:11:9f:01</text><text x="840" y="246" fill="#30d158">-42</text><text x="940" y="246">149</text><text x="1080" y="246">WPA2</text>
+    <text x="300" y="290">MTN-HyNet</text><text x="620" y="290" fill="#8e8e93">e0:1c:41:77:2a:bb</text><text x="840" y="290" fill="#30d158">-55</text><text x="940" y="290">6</text><text x="1080" y="290">WPA2</text>
+    <text x="300" y="334">Tenda_8A2C</text><text x="620" y="334" fill="#8e8e93">c8:3a:35:44:8a:2c</text><text x="840" y="334" fill="#ff9f0a">-68</text><text x="940" y="334">11</text><text x="1080" y="334">WPA</text>
+    <text x="300" y="378">TP-Link_2.4</text><text x="620" y="378" fill="#8e8e93">50:c7:bf:6d:10:33</text><text x="840" y="378" fill="#ff9f0a">-71</text><text x="940" y="378">1</text><text x="1080" y="378">WPA2</text>
+    <text x="300" y="422">Starlink</text><text x="620" y="422" fill="#8e8e93">00:d8:61:aa:7e:12</text><text x="840" y="422" fill="#ff453a">-84</text><text x="940" y="422">36</text><text x="1080" y="422">WPA2</text>
+    <text x="300" y="466">Guest-WiFi</text><text x="620" y="466" fill="#8e8e93">82:7c:9e:03:55:d0</text><text x="840" y="466" fill="#ff9f0a">-73</text><text x="940" y="466">44</text><text x="1080" y="466">Open</text>
+  </g>
+  <rect x="280" y="560" width="920" height="180" rx="12" fill="#fbfbfd" stroke="#e5e5ea"/>
+  <text x="640" y="640" text-anchor="middle" font-size="22" font-weight="700" fill="#c7c7cc">03 · Networks (scan results)</text>
+  <text x="640" y="670" text-anchor="middle" font-size="13" fill="#aeaeb2">Placeholder — replace with a real capture (see docs/screenshots/README.md)</text>
+</svg>
