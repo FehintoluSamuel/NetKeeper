@@ -208,6 +208,8 @@ Types are mirrored on both sides: Serde structs in Rust, TypeScript types in `Ap
 
 Settings are saved with a 600 ms debounce whenever the `settings` object changes.
 
+**Brand migration:** WiKeep was formerly *NetKeeper*. On first run under the new brand, `migrate_legacy_config()` copies `settings.json`, `logs.jsonl` and `.onboarded` from `~/.config/netkeeper/` into `~/.config/wikeep/` (only when the new file does not exist yet), so the old data carries over exactly once.
+
 ---
 
 ## 8. Security model

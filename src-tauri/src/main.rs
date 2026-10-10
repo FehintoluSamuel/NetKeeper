@@ -35,7 +35,28 @@ pub struct LogEntry { id: String, timestamp: String, time_ms: i64, level: String
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DhcpState { healthy: bool, ip: String, state: String, detail: String, }
 
-fn config_dir() -> PathBuf { let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); let p = PathBuf::from(home).join(".config").join("wikeep"); let _ = fs::create_dir_all(&p); p }
+fn config_dir() -> PathBuf { migrate_legacy_config(); let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); let p = PathBuf::from(home).join(".config").join("wikeep"); let _ = fs::create_dir_all(&p); p }
+
+// One-time migration: WiKeep used to be NetKeeper, whose data lived in ~/.config/netkeeper.
+// On first run under the new brand, copy any existing settings/logs over so nothing is lost.
+fn migrate_legacy_config() {
+    use std::sync::Once;
+    static ONCE: Once = Once::new();
+    ONCE.call_once(|| {
+        let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+        let new_dir = PathBuf::from(&home).join(".config").join("wikeep");
+        let old_dir = PathBuf::from(&home).join(".config").join("netkeeper");
+        if !old_dir.is_dir() { return; }
+        let _ = fs::create_dir_all(&new_dir);
+        for name in ["settings.json", "logs.jsonl", ".onboarded"] {
+            let src = old_dir.join(name);
+            let dst = new_dir.join(name);
+            if src.exists() && !dst.exists() {
+                let _ = fs::copy(&src, &dst);
+            }
+        }
+    });
+}
 fn settings_path() -> PathBuf { config_dir().join("settings.json") }
 fn logs_path() -> PathBuf { config_dir().join("logs.jsonl") }
 fn onboarded_path() -> PathBuf { config_dir().join(".onboarded") }
