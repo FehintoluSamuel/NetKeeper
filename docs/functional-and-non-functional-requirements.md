@@ -91,11 +91,12 @@ WiKeep is a local-first macOS desktop application for **monitoring, recovering a
 | ID | Requirement | Status |
 | --- | --- | --- |
 | FR-6.1 | Detect "radio ON but no usable IPv4 / link-local only" DHCP failure | Yes |
-| FR-6.2 | Delete `NetworkInterfaces.plist` and `preferences.plist` as admin | Yes |
+| FR-6.2 | Delete `NetworkInterfaces.plist` and `preferences.plist` **and stale DHCP leases** as admin | Yes |
 | FR-6.3 | Obtain admin via the native macOS dialog (`osascript`); never store the password | Yes |
-| FR-6.4 | Flush DNS cache after repair | Yes |
+| FR-6.4 | Flush DNS cache, restart `configd` (re-enumerate radio) before reboot, and rejoin the prior SSID on next launch | Yes |
 | FR-6.5 | Offer a reboot (native dialog); reboot required to fully complete | Yes |
 | FR-6.6 | Support on-demand **and** automatic (opt-in) repair with cooldown + lock | Yes |
+| FR-6.7 | Detect and report the hardware-level case (interface still not re-enumerated → SMC/NVRAM reset guidance) | Yes |
 
 ### FR-7 — Logging
 

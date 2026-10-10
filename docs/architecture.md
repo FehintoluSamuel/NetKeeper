@@ -124,7 +124,7 @@ All backend code lives in `src-tauri/src/main.rs`. It is organized as:
 - `sync_autostart(enabled)` — writes/removes a LaunchAgent (`com.wikeep.app.plist`); only acts when running from a packaged `.app`.
 - `scan_wifi()` — parses `airport -s`, using a robust scan for the negative RSSI token (fixes the classic 1-vs-3 parsing bug), then derives SSID/BSSID/channel/security.
 - `check_dhcp_state()` — healthy unless *radio ON* **and** (no IPv4 **or** a `169.254.*` link-local address).
-- `deep_network_repair()` / `prompt_reboot()` — `osascript` flows (admin delete + native reboot dialog).
+- `deep_network_repair()` / `prompt_reboot()` — `osascript` flows. The repair deletes the two mapping plists **and stale DHCP leases**, restarts `configd` (`killall -HUP`) **before** reboot so the mapping is rebuilt from a fresh hardware scan instead of being rewritten from memory at shutdown, re-enumerates the radio, and writes a `.post_repair` marker so the next launch rejoins the same network. If the AirPort interface still isn't enumerated afterwards it reports an SMC/NVRAM reset, which no app can perform.
 
 ### 4.2 macOS integration
 
@@ -203,6 +203,7 @@ Types are mirrored on both sides: Serde structs in Rust, TypeScript types in `Ap
 | Settings | JSON (pretty) | `~/.config/wikeep/settings.json` |
 | Logs | JSONL (append-only) | `~/.config/wikeep/logs.jsonl` |
 | Onboarding flag | marker file | `~/.config/wikeep/.onboarded` |
+| Post-repair handoff | marker file | `~/.config/wikeep/.post_repair` |
 | Autostart | LaunchAgent plist | `~/Library/LaunchAgents/com.wikeep.app.plist` |
 | Welcome-seen | browser storage | `localStorage["wikeep_welcome_seen"]` |
 

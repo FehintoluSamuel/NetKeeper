@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useId } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import { message } from "@tauri-apps/api/dialog";
 import { sendNotification, isPermissionGranted, requestPermission } from "@tauri-apps/api/notification";
 import {
   LayoutDashboard, Radio, Activity, Settings, ScrollText,
@@ -880,13 +881,17 @@ export default function App(){
   };
 
   const runDeepRepair = async (reason: string) => {
-    await addLog("warn","Deep Repair","bad DHCP ("+reason+") - removing NetworkInterfaces.plist + preferences.plist - admin password required");
+    await addLog("warn","Deep Repair","bad DHCP ("+reason+") - removing NetworkInterfaces.plist + preferences.plist + DHCP leases - admin password required");
     try{
       const r = await invoke<string>("deep_network_repair");
       await addLog("success","Deep Repair",r);
+      if(!r.includes("interface is still NOT re-enumerated")) {
+        await addLog("info","Deep Repair","post-repair marker written - WiKeep will re-verify and rejoin on next launch");
+      }
+      try{ await message(r, { title: "Deep Network Repair", type: r.includes("NOT re-enumerated") ? "warning" : "info" }); }catch{}
       const choice = await invoke<string>("prompt_reboot");
       await addLog("info","Deep Repair", choice==="reboot" ? "user chose to reboot - repair will finish on restart" : "reboot deferred - restart manually to finish repair");
-    }catch(e:any){ await addLog("error","Deep Repair","plist reset failed or cancelled: "+e); }
+    }catch(e:any){ await addLog("error","Deep Repair","plist reset failed or cancelled: "+e); try{ await message("Repair was not completed: "+e, { title: "Deep Network Repair", type: "error" }); }catch{} }
   };
 
   const checkDhcp = async () => {

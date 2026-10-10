@@ -268,15 +268,81 @@ const NET_SC_PREFS: &[&str] = &[
 // Deletes the corruptible SystemConfiguration plists. Runs through osascript so macOS
 // shows its native administrator password prompt - the app never stores credentials.
 #[command(async)] fn deep_network_repair() -> Result<String, String> {
-    let rm_cmd = format!("rm -f {}", NET_SC_PREFS.join(" "));
-    let script = format!("do shell script \"{}\" with administrator privileges", rm_cmd);
+    let iface = detect_wifi_interface();
+    let ssid = current_wifi_ssid(&iface);
+    // One admin shell = one password prompt. Delete the interface-mapping plists AND stale
+    // DHCP leases, then bounce configd so it re-scans hardware and rebuilds from a clean
+    // state - otherwise configd rewrites the broken plists from memory at shutdown and the
+    // greyed-out icon survives the reboot (the exact failure that was reported).
+    let admin_cmd = format!(
+        "rm -f {}; rm -f /var/db/dhcpclient/leases/* 2>/dev/null; killall -HUP configd",
+        NET_SC_PREFS.join(" ")
+    );
+    let script = format!("do shell script \"{}\" with administrator privileges", admin_cmd);
     let out = Command::new("osascript").args(["-e", &script]).output().map_err(|e| e.to_string())?;
     if !out.status.success() {
         let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
         return Err(if err.is_empty() { "repair cancelled or not authorised".to_string() } else { err });
     }
+    // Give configd a moment to rescan, then pull the radio up and renew DHCP.
+    let _ = Command::new("sh").arg("-c").arg("sleep 3").output();
     let _ = Command::new("sh").arg("-c").arg("dscacheutil -flushcache").output();
-    Ok(format!("removed {} preference files - network mapping rebuilt - reboot required", NET_SC_PREFS.len()))
+    let _ = Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {} on", iface)).output();
+    let _ = Command::new("sh").arg("-c").arg(format!("ipconfig set {} DHCP", iface)).output();
+    // Ask WiKeep to re-verify + rejoin on the next launch.
+    let marker = config_dir().join(".post_repair");
+    let _ = fs::write(&marker, format!("{}\n{}", iface, ssid));
+    if !wifi_interface_enumerated() {
+        return Ok("plists + DHCP leases reset and configd rebuilt - but the AirPort interface is still NOT re-enumerated. That is beyond plist corruption: power the Mac off, unplug power for 10 seconds (Intel SMC reset), restart, and hold Command+Option+P+R at boot (NVRAM reset). WiKeep will re-verify on next launch.".to_string());
+    }
+    Ok("deleted NetworkInterfaces.plist + preferences.plist + DHCP leases and restarted configd - Wi-Fi interface re-enumerated and radio restored. A reboot is still recommended to finalise the rebuild.".to_string())
+}
+
+// Name of the network the interface is currently on (empty when none).
+fn current_wifi_ssid(iface: &str) -> String {
+    if let Ok(out) = Command::new("networksetup").args(["-getairportnetwork", iface]).output() {
+        let s = String::from_utf8_lossy(&out.stdout);
+        for line in s.lines() {
+            let l = line.trim();
+            if let Some(v) = l.strip_prefix("Current Wi-Fi Network:") { return v.trim().to_string(); }
+        }
+    }
+    String::new()
+}
+
+// True when a Wi-Fi/AirPort hardware port with a device is enumerated by networksetup.
+// False = the greyed-out-with-slash state, i.e. the AirPort interface never came back.
+fn wifi_interface_enumerated() -> bool {
+    if let Ok(out) = Command::new("networksetup").arg("-listallhardwareports").output() {
+        let mut port = String::new();
+        for line in String::from_utf8_lossy(&out.stdout).lines() {
+            let l = line.trim();
+            if let Some(p) = l.strip_prefix("Hardware Port:") { port = p.trim().to_string(); }
+            else if let Some(_d) = l.strip_prefix("Device:") {
+                if port == "Wi-Fi" || port == "AirPort" { return true; }
+            }
+        }
+    }
+    false
+}
+
+// On the launch right after a Deep Repair, finish the job: flush, re-raise the radio,
+// spool DHCP, and rejoin the network we were on before the wipe.
+fn recover_after_repair() {
+    let marker = config_dir().join(".post_repair");
+    if !marker.exists() { return; }
+    let data = fs::read_to_string(&marker).unwrap_or_default();
+    let _ = fs::remove_file(&marker);
+    let lines: Vec<&str> = data.lines().map(|s| s.trim()).collect();
+    let iface = lines.first().copied().unwrap_or("");
+    let ssid = lines.get(1).copied().unwrap_or("");
+    let _ = Command::new("sh").arg("-c").arg("dscacheutil -flushcache").output();
+    if iface.is_empty() { return; }
+    let _ = Command::new("sh").arg("-c").arg(format!("networksetup -setairportpower {} on", iface)).output();
+    let _ = Command::new("sh").arg("-c").arg(format!("ipconfig set {} DHCP", iface)).output();
+    if !ssid.is_empty() {
+        let _ = Command::new("sh").arg("-c").arg(format!("networksetup -setairportnetwork '{}' '{}'", iface, ssid)).output();
+    }
 }
 
 // Native dialog asking to reboot now; uses System Events so no extra admin prompt.
@@ -307,7 +373,9 @@ fn main() {
        .setup(|app| {
            // Sync LaunchAgent with the saved setting so a toggle stays in effect across reboots.
            let settings = get_settings().unwrap_or_default();
-           let _ = sync_autostart(settings.launch_at_login);
+let _ = sync_autostart(settings.launch_at_login);
+           // Finish any Deep Repair that was interrupted by a reboot.
+           recover_after_repair();
            // Apply the saved Dock preference at startup (macOS activation policy).
            #[cfg(target_os = "macos")]
            app.set_activation_policy(if settings.show_dock { tauri::ActivationPolicy::Regular } else { tauri::ActivationPolicy::Accessory });
