@@ -1,6 +1,6 @@
-# NetKeeper — Architecture
+# WiKeep — Architecture
 
-This document describes how NetKeeper is structured, how the React frontend and the Rust backend communicate, how the scanning/repair scheduling works, and where the important extension points are.
+This document describes how WiKeep is structured, how the React frontend and the Rust backend communicate, how the scanning/repair scheduling works, and where the important extension points are.
 
 Related docs: [`../README.md`](../README.md) · [`functional-and-non-functional-requirements.md`](functional-and-non-functional-requirements.md)
 
@@ -8,7 +8,7 @@ Related docs: [`../README.md`](../README.md) · [`functional-and-non-functional-
 
 ## 1. High-level overview
 
-NetKeeper is a **Tauri 1.x desktop app**: a Rust core process that owns the OS and window, and a React/TypeScript UI rendered inside the system WebView (WKWebView on macOS). The two halves communicate over Tauri's IPC bridge using `invoke`.
+WiKeep is a **Tauri 1.x desktop app**: a Rust core process that owns the OS and window, and a React/TypeScript UI rendered inside the system WebView (WKWebView on macOS). The two halves communicate over Tauri's IPC bridge using `invoke`.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -83,7 +83,7 @@ State is held with `useState`; high-frequency or cross-effect values use `useRef
 
 ### 3.3 Tab router
 
-`activeTab: Tab` selects which view renders. `Tab` = `welcome | overview | networks | diagnostics | settings | log | help`. On first run `activeTab` defaults to `welcome` (persisted in `localStorage` as `netkeeper_welcome_seen`).
+`activeTab: Tab` selects which view renders. `Tab` = `welcome | overview | networks | diagnostics | settings | log | help`. On first run `activeTab` defaults to `welcome` (persisted in `localStorage` as `wikeep_welcome_seen`).
 
 ### 3.4 Scheduling & performance design
 
@@ -121,7 +121,7 @@ All backend code lives in `src-tauri/src/main.rs`. It is organized as:
 ### 4.1 Key helper logic
 
 - `detect_wifi_interface()` — finds the real Wi-Fi device instead of assuming `en0`: (1) match the `Wi-Fi`/`AirPort` hardware port from `networksetup -listallhardwareports`, (2) first `en*` with an IPv4 address, (3) first `en*`, (4) `en0`.
-- `sync_autostart(enabled)` — writes/removes a LaunchAgent (`com.netkeeper.app.plist`); only acts when running from a packaged `.app`.
+- `sync_autostart(enabled)` — writes/removes a LaunchAgent (`com.wikeep.app.plist`); only acts when running from a packaged `.app`.
 - `scan_wifi()` — parses `airport -s`, using a robust scan for the negative RSSI token (fixes the classic 1-vs-3 parsing bug), then derives SSID/BSSID/channel/security.
 - `check_dhcp_state()` — healthy unless *radio ON* **and** (no IPv4 **or** a `169.254.*` link-local address).
 - `deep_network_repair()` / `prompt_reboot()` — `osascript` flows (admin delete + native reboot dialog).
@@ -200,11 +200,11 @@ Types are mirrored on both sides: Serde structs in Rust, TypeScript types in `Ap
 
 | Data | Format | Path |
 | --- | --- | --- |
-| Settings | JSON (pretty) | `~/.config/netkeeper/settings.json` |
-| Logs | JSONL (append-only) | `~/.config/netkeeper/logs.jsonl` |
-| Onboarding flag | marker file | `~/.config/netkeeper/.onboarded` |
-| Autostart | LaunchAgent plist | `~/Library/LaunchAgents/com.netkeeper.app.plist` |
-| Welcome-seen | browser storage | `localStorage["netkeeper_welcome_seen"]` |
+| Settings | JSON (pretty) | `~/.config/wikeep/settings.json` |
+| Logs | JSONL (append-only) | `~/.config/wikeep/logs.jsonl` |
+| Onboarding flag | marker file | `~/.config/wikeep/.onboarded` |
+| Autostart | LaunchAgent plist | `~/Library/LaunchAgents/com.wikeep.app.plist` |
+| Welcome-seen | browser storage | `localStorage["wikeep_welcome_seen"]` |
 
 Settings are saved with a 600 ms debounce whenever the `settings` object changes.
 
@@ -235,7 +235,7 @@ npm run tauri dev  → Tauri dev with hot reload
 npm run tauri build→ .app + .dmg in src-tauri/target/release/bundle/
 ```
 
-`tauri.conf.json` defines the window (1280×820, min 960×640, centered, resizable), the tray, `identifier: com.netkeeper.app`, and bundles `targets: all`.
+`tauri.conf.json` defines the window (1280×820, min 960×640, centered, resizable), the tray, `identifier: com.wikeep.app`, and bundles `targets: all`.
 
 ---
 

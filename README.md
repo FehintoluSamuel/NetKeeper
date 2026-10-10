@@ -1,8 +1,8 @@
-# NetKeeper
+# WiKeep
 
 **A macOS Wi-Fi diagnostic & self-repair utility — keep your connection alive, automatically.**
 
-NetKeeper scans every Wi-Fi network on every band, watches your link in real time, auto-recovers the radio when it crashes, switches you to the strongest known access point, and repairs the corrupted macOS network plists that cause the dreaded *greyed-out Wi-Fi icon with a slash*.
+WiKeep scans every Wi-Fi network on every band, watches your link in real time, auto-recovers the radio when it crashes, switches you to the strongest known access point, and repairs the corrupted macOS network plists that cause the dreaded *greyed-out Wi-Fi icon with a slash*.
 
 > Status: **v3.0.0** · Platform: **macOS (Apple Silicon & Intel)** · Local-first — **no cloud, no telemetry**.
 
@@ -10,7 +10,7 @@ NetKeeper scans every Wi-Fi network on every band, watches your link in real tim
 
 ## Table of contents
 
-- [Why NetKeeper](#why-netkeeper)
+- [Why WiKeep](#why-wikeep)
 - [Screens](#screens)
 - [Features](#features)
 - [How it works](#how-it-works)
@@ -28,11 +28,11 @@ NetKeeper scans every Wi-Fi network on every band, watches your link in real tim
 
 ---
 
-## Why NetKeeper
+## Why WiKeep
 
-macOS loses Wi-Fi in ways the menu bar never explains. The radio crashes after sleep. The interface mapping corrupts and the icon greys out even though the radio says it is ON. You drift onto a weak access point and never switch back. NetKeeper treats these as first-class problems and fixes them — instead of being yet another read-only status panel.
+macOS loses Wi-Fi in ways the menu bar never explains. The radio crashes after sleep. The interface mapping corrupts and the icon greys out even though the radio says it is ON. You drift onto a weak access point and never switch back. WiKeep treats these as first-class problems and fixes them — instead of being yet another read-only status panel.
 
-| Problem macOS leaves to you | What NetKeeper does |
+| Problem macOS leaves to you | What WiKeep does |
 | --- | --- |
 | Wi-Fi icon greyed out / slashed, radio is ON | **Deep Network Repair** resets the network plists and reboots |
 | 0 networks found after wake | **Auto-Heal** power-cycles the radio automatically |
@@ -61,10 +61,10 @@ Five core screens (real captures live in [`docs/screenshots/`](docs/screenshots/
 ## Features
 
 ### Deep Network Repair *(signature)*
-When the Wi-Fi icon is greyed out with a slash *despite the radio being ON*, the macOS interface-to-service mapping has corrupted. NetKeeper deletes `NetworkInterfaces.plist` and `preferences.plist` behind a native admin prompt, flushes the DNS cache, and offers to reboot so macOS rebuilds the mapping. Runs on demand or automatically on every scan when enabled.
+When the Wi-Fi icon is greyed out with a slash *despite the radio being ON*, the macOS interface-to-service mapping has corrupted. WiKeep deletes `NetworkInterfaces.plist` and `preferences.plist` behind a native admin prompt, flushes the DNS cache, and offers to reboot so macOS rebuilds the mapping. Runs on demand or automatically on every scan when enabled.
 
 ### Auto-Heal Radio Crash
-If a scan returns **0 networks**, NetKeeper waits 5 seconds, re-checks, and — if still empty — power-cycles the radio (`networksetup -setairportpower off/on`) with a BSSID cache purge. Includes a 60-second cooldown so it never thrashes.
+If a scan returns **0 networks**, WiKeep waits 5 seconds, re-checks, and — if still empty — power-cycles the radio (`networksetup -setairportpower off/on`) with a BSSID cache purge. Includes a 60-second cooldown so it never thrashes.
 
 ### Real, Unfiltered Scanning
 Reads the hardware through `airport -s` across **2.4 GHz and 5 GHz** on every vendor — MTN, Starlink, Tenda, TP-Link, hotspots, anything. No allow-list, no vendor filter. Parses SSID, BSSID, RSSI, channel and security with a robust RSSI-token detector.
@@ -96,7 +96,7 @@ A built-in, webpage-style **Welcome** tab explains every feature in detail, and 
 
 ## How it works
 
-1. **Scan** — NetKeeper reads the real radio and lists every network on every band.
+1. **Scan** — WiKeep reads the real radio and lists every network on every band.
 2. **Watch** — the connection manager monitors the link, keeps it alive, and auto-recovers the radio if it crashes or the plists go bad.
 3. **Repair** — when the OS-level Wi-Fi state breaks, Deep Network Repair resets the plists and reboots you back to a working radio.
 
@@ -111,7 +111,7 @@ The two files below hold macOS's interface → network-service mapping. When the
 /Library/Preferences/SystemConfiguration/preferences.plist
 ```
 
-NetKeeper removes them **as root** via a native `osascript … with administrator privileges` prompt (it never stores or sees your password), flushes the cache, and prompts a reboot. On restart, macOS rebuilds a clean mapping.
+WiKeep removes them **as root** via a native `osascript … with administrator privileges` prompt (it never stores or sees your password), flushes the cache, and prompts a reboot. On restart, macOS rebuilds a clean mapping.
 
 **When to use it:** the slashed/greyed Wi-Fi icon, Wi-Fi shows "On" but no networks, or DHCP stays broken after other resets. Enable *Auto Deep Repair* to trigger it automatically when a scan detects *radio ON but no valid IPv4 lease*.
 
@@ -142,7 +142,7 @@ NetKeeper removes them **as root** via a native `osascript … with administrato
 
 ```bash
 git clone git@github.com:FehintoluSamuel/NetKeeper.git
-cd NetKeeper
+cd WiKeep
 
 npm install
 npm run tauri dev
@@ -191,9 +191,9 @@ Launch the **guided tour** from the Welcome hero, the final CTA, or the footer l
 
 | Item | Location |
 | --- | --- |
-| Settings | `~/.config/netkeeper/settings.json` |
-| Logs | `~/.config/netkeeper/logs.jsonl` |
-| Autostart | `~/Library/LaunchAgents/com.netkeeper.app.plist` |
+| Settings | `~/.config/wikeep/settings.json` |
+| Logs | `~/.config/wikeep/logs.jsonl` |
+| Autostart | `~/Library/LaunchAgents/com.wikeep.app.plist` |
 
 **Permissions:** macOS requires **Location Services** access for `airport -s` to list all nearby networks. Without it you may only see the network you are connected to. Admin rights are requested only for Deep Network Repair, through the native system dialog.
 
@@ -202,7 +202,7 @@ Launch the **guided tour** from the Welcome hero, the final CTA, or the footer l
 ## Project structure
 
 ```
-netkeeper-final/
+wikeep-final/
 ├── index.html                  # Vite entry (mounts /src/main.tsx)
 ├── src/
 │   ├── App.tsx                 # Entire UI: tabs, logic, charts, landing, tour

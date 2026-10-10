@@ -7,7 +7,7 @@
     "features": ["api-all", "system-tray"]
   },
   "package": {
-    "productName": "NetKeeper",
+    "productName": "WiKeep",
     "version": "3.0.0"
   },
   "tauri": {
@@ -21,7 +21,7 @@
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "identifier": "com.netkeeper.app",
+      "identifier": "com.wikeep.app",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -45,7 +45,7 @@
         "minHeight": 640,
         "center": true,
         "resizable": true,
-        "title": "NetKeeper v3.0.0"
+        "title": "WiKeep v3.0.0"
       }
     ]
   }

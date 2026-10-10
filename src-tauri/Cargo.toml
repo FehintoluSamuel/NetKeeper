@@ -1,8 +1,8 @@
 [package]
-name = "netkeeper"
+name = "wikeep"
 version = "3.0.0"
-description = "Keep your MTN networks alive"
-authors = ["NetKeeper"]
+description = "Keep your Wi-Fi alive"
+authors = ["WiKeep"]
 edition = "2021"
 
 [build-dependencies]

@@ -1,6 +1,6 @@
 # Screenshots
 
-Real captures of NetKeeper's five core screens, referenced from the root [`README.md`](../../README.md) **Screens** section.
+Real captures of WiKeep's five core screens, referenced from the root [`README.md`](../../README.md) **Screens** section.
 
 ## Files
 

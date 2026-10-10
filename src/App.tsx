@@ -255,10 +255,10 @@ function DonutChart({ segments, size=116, thickness=15, center }: { segments:{la
 const SAMPLE_SIGNAL = [58,66,62,71,68,76,72,80,77,85,82,88,84,90,86,93];
 
 const LANDING_FEATURES: { icon: any; title: string; tag: string; body: string }[] = [
-  { icon: Power, title: "Deep Network Repair", tag: "Signature", body: "When the Wi-Fi icon greys out with a slash even though the radio is ON, NetKeeper deletes the corrupted NetworkInterfaces.plist and preferences.plist with one admin prompt, then offers a reboot. This is the fix nothing else does." },
-  { icon: RefreshCw, title: "Auto-Heal Radio Crash", tag: "Recovery", body: "If a scan returns zero networks on your interface, NetKeeper waits 5 seconds, re-checks, and power-cycles the radio with a networksetup off/on cycle plus a BSSID cache purge. It runs on its own so you do not have to babysit it." },
-  { icon: Wifi, title: "Auto-Reconnect & Best-Network Switching", tag: "Connectivity", body: "Drop off the network and NetKeeper rejoins the strongest known SSID automatically. It also switches you to a better access point when the signal gain is worth it, respecting your preferred band and blocking open networks." },
-  { icon: Zap, title: "Reconnect on Wake", tag: "Reliability", body: "NetKeeper detects wake-from-sleep through a heartbeat gap and immediately restores your link, so you never come back to a stale, dead connection." },
+  { icon: Power, title: "Deep Network Repair", tag: "Signature", body: "When the Wi-Fi icon greys out with a slash even though the radio is ON, WiKeep deletes the corrupted NetworkInterfaces.plist and preferences.plist with one admin prompt, then offers a reboot. This is the fix nothing else does." },
+  { icon: RefreshCw, title: "Auto-Heal Radio Crash", tag: "Recovery", body: "If a scan returns zero networks on your interface, WiKeep waits 5 seconds, re-checks, and power-cycles the radio with a networksetup off/on cycle plus a BSSID cache purge. It runs on its own so you do not have to babysit it." },
+  { icon: Wifi, title: "Auto-Reconnect & Best-Network Switching", tag: "Connectivity", body: "Drop off the network and WiKeep rejoins the strongest known SSID automatically. It also switches you to a better access point when the signal gain is worth it, respecting your preferred band and blocking open networks." },
+  { icon: Zap, title: "Reconnect on Wake", tag: "Reliability", body: "WiKeep detects wake-from-sleep through a heartbeat gap and immediately restores your link, so you never come back to a stale, dead connection." },
   { icon: Timer, title: "Keep-Alive Pings", tag: "Monitoring", body: "Configurable pings to your router, DNS and the internet keep the link warm and surface a slow or failing connection before it drops." },
   { icon: Activity, title: "Live Diagnostics & Charts", tag: "Insight", body: "Real ping RTT, signal quality over time, latency trends, channel congestion and band split - rendered as smooth, hoverable charts with threshold and average reference lines." },
   { icon: ScrollText, title: "Persistent Recovery Log", tag: "History", body: "Every scan, repair, switch and error is written to a durable log you can read back, so you can see exactly what happened and when." },
@@ -266,13 +266,13 @@ const LANDING_FEATURES: { icon: any; title: string; tag: string; body: string }[
 ];
 
 const LANDING_STEPS = [
-  { n: "01", title: "Scan", body: "NetKeeper reads the real radio across 2.4 GHz and 5 GHz on every vendor - no filters, no vendor lock-in. All SSIDs, all security types." },
+  { n: "01", title: "Scan", body: "WiKeep reads the real radio across 2.4 GHz and 5 GHz on every vendor - no filters, no vendor lock-in. All SSIDs, all security types." },
   { n: "02", title: "Watch", body: "The connection manager monitors the link, keeps it alive, and auto-recovers the radio if it crashes or the plists go bad." },
   { n: "03", title: "Repair", body: "When the OS-level Wi-Fi state breaks, Deep Network Repair resets the plists and reboots you back to a working radio." },
 ];
 
 const LANDING_FAQ: { q: string; a: string }[] = [
-  { q: "Does it work with any router or ISP?", a: "Yes. NetKeeper talks to the macOS radio, not a specific brand, so it works with MTN, Starlink, Tenda, TP-Link, and any other access point." },
+  { q: "Does it work with any router or ISP?", a: "Yes. WiKeep talks to the macOS radio, not a specific brand, so it works with MTN, Starlink, Tenda, TP-Link, and any other access point." },
   { q: "Will Deep Repair erase my Wi-Fi passwords?", a: "It deletes two system network-preference plists. macOS rebuilds them automatically, and the reboot prompt lets you confirm before anything is lost. It is opt-in." },
   { q: "Does it need the internet to run?", a: "No. Only the optional keep-alive ping and public-IP lookups touch the network; every repair and scan is fully local." },
   { q: "What makes it different from just using the macOS menu bar?", a: "It actively repairs a broken radio state, auto-switches you between access points, and keeps a forensic log - the macOS panel only displays the current status." },
@@ -287,7 +287,7 @@ function LandingPage({ onTour, onDashboard, onHelp }: { onTour: ()=>void; onDash
         <div className="max-w-[780px]">
           <div className="mono text-[11px] font-[600] tracking-[0.2em] text-[#8e8e93] uppercase">macOS Wi-Fi diagnostic &amp; repair utility</div>
           <h1 className="mt-5 text-[36px] md:text-[48px] font-[800] leading-[1.02] tracking-[-0.035em] text-[#0a0a0a]">Keep your Wi-Fi alive,<br/>automatically.</h1>
-          <p className="mt-5 text-[15px] text-[#4a4a4f] leading-[1.65] max-w-[600px]">NetKeeper scans every network on every band, monitors your link, recovers the radio when it crashes, and repairs the corrupt network plists that grey out the Wi-Fi icon. One app, always watching.</p>
+          <p className="mt-5 text-[15px] text-[#4a4a4f] leading-[1.65] max-w-[600px]">WiKeep scans every network on every band, monitors your link, recovers the radio when it crashes, and repairs the corrupt network plists that grey out the Wi-Fi icon. One app, always watching.</p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <button onClick={onTour} className="h-11 px-5 rounded-[9px] bg-[#0a0a0a] text-white font-[600] text-[13.5px] flex items-center gap-2 hover:bg-[#26262a] transition-colors">Take the 60-second tour<ArrowRight className="w-4 h-4"/></button>
             <button onClick={onDashboard} className="h-11 px-5 rounded-[9px] border border-black/[0.15] bg-white text-[#1d1d1f] font-[600] text-[13.5px] hover:bg-black/[0.03] transition-colors">Open Dashboard</button>
@@ -306,7 +306,7 @@ function LandingPage({ onTour, onDashboard, onHelp }: { onTour: ()=>void; onDash
           <span className="w-3 h-3 rounded-full bg-[#ff5f57]"/>
           <span className="w-3 h-3 rounded-full bg-[#febc2e]"/>
           <span className="w-3 h-3 rounded-full bg-[#28c840]"/>
-          <span className="mono text-[10.5px] text-[#8e8e93] ml-2">NetKeeper — Dashboard</span>
+          <span className="mono text-[10.5px] text-[#8e8e93] ml-2">WiKeep — Dashboard</span>
         </div>
         <div className="p-5">
           <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6">
@@ -335,7 +335,7 @@ function LandingPage({ onTour, onDashboard, onHelp }: { onTour: ()=>void; onDash
         <div className="text-center max-w-[640px] mx-auto">
           <span className="mono text-[11px] font-[700] tracking-widest text-[#0a84ff] uppercase">What it does</span>
           <h2 className="text-[26px] font-[800] mt-2 tracking-tight">Every feature, in detail</h2>
-          <p className="text-[13.5px] text-[#6e6e73] mt-2 leading-[1.6]">NetKeeper is not a status panel. It watches, repairs and reconnects on your behalf.</p>
+          <p className="text-[13.5px] text-[#6e6e73] mt-2 leading-[1.6]">WiKeep is not a status panel. It watches, repairs and reconnects on your behalf.</p>
         </div>
         <div className="mt-7 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {LANDING_FEATURES.map(f=>{
@@ -397,14 +397,14 @@ function LandingPage({ onTour, onDashboard, onHelp }: { onTour: ()=>void; onDash
         </div>
       </div>
 
-      <div className="mt-8 pb-2 text-center mono text-[10.5px] text-[#8e8e93]">NetKeeper v3.0.0 — built for macOS — all vendors — no filter — no cloud</div>
+      <div className="mt-8 pb-2 text-center mono text-[10.5px] text-[#8e8e93]">WiKeep v3.0.0 — built for macOS — all vendors — no filter — no cloud</div>
     </div>
   );
 }
 
 type TourStep = { target: string; tab: Tab; title: string; body: string };
 const TOUR_STEPS: TourStep[] = [
-  { target: "nav-welcome", tab: "welcome", title: "Welcome to NetKeeper", body: "This is the landing page. It explains every feature; you can reopen it any time from the sidebar." },
+  { target: "nav-welcome", tab: "welcome", title: "Welcome to WiKeep", body: "This is the landing page. It explains every feature; you can reopen it any time from the sidebar." },
   { target: "nav-overview", tab: "overview", title: "The Dashboard", body: "A live snapshot: current SSID, IP and router, radio status, signal quality and network counts - all updating in real time." },
   { target: "scan-button", tab: "overview", title: "Scan on demand", body: "Trigger a fresh real-radio scan of every SSID on 2.4 GHz and 5 GHz. Background scans are throttled so the radio never gets hammered." },
   { target: "radio-card", tab: "overview", title: "Radio status", body: "Shows whether the radio is ON or OFF and which network you are joined to - the same state the repair logic watches." },
@@ -413,7 +413,7 @@ const TOUR_STEPS: TourStep[] = [
   { target: "nav-settings", tab: "settings", title: "Settings", body: "Turn on auto-reconnect, auto-switch, keep-alive, notifications, launch-at-login and more. Everything saves instantly." },
   { target: "deep-repair", tab: "settings", title: "Deep Network Repair", body: "The signature fix. When the Wi-Fi icon is greyed out with a slash despite the radio being ON, this resets the network plists and offers a reboot." },
   { target: "nav-log", tab: "log", title: "Recovery Log", body: "A persistent, chronological record of every scan, repair, switch and error - your forensic trail." },
-  { target: "nav-help", tab: "help", title: "That is the tour", body: "The Help tab holds the full reference. Replay this tour any time from the footer. Enjoy NetKeeper!" },
+  { target: "nav-help", tab: "help", title: "That is the tour", body: "The Help tab holds the full reference. Replay this tour any time from the footer. Enjoy WiKeep!" },
 ];
 
 function Tour({ open, onClose, onNavigate }: { open: boolean; onClose: ()=>void; onNavigate: (t:Tab)=>void }){
@@ -488,42 +488,42 @@ function HelpPage({ settings }: { settings: AppSettings }){
             <div className="w-11 h-11 rounded-[11px] bg-white/15 border border-white/25 flex items-center justify-center shrink-0"><Power className="w-6 h-6"/></div>
             <div>
               <div className="flex items-center gap-2"><span className="font-[800] text-[16px] leading-none">Deep Network Repair</span><span className="text-[9px] font-[800] tracking-widest uppercase bg-white text-[#0a84ff] rounded-full px-2 py-0.5">Signature fix</span></div>
-              <div className="text-[12px] text-white/85 mt-1">Repairs the greyed-out Wi-Fi icon with the slash - even when the radio is ON. This is what sets NetKeeper apart.</div>
+              <div className="text-[12px] text-white/85 mt-1">Repairs the greyed-out Wi-Fi icon with the slash - even when the radio is ON. This is what sets WiKeep apart.</div>
             </div>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 text-[12px] leading-[1.55]">
           <div className="bg-white/10 border border-white/15 rounded-[11px] p-3"><div className="font-[700] text-white">The problem</div><div className="text-white/85 mt-1">macOS keeps the interface-to-service mapping in two files: NetworkInterfaces.plist and preferences.plist. When they corrupt, the menu-bar Wi-Fi icon greys out and shows a slash even though the Wi-Fi radio is switched on - and a normal off/on toggle does not bring it back.</div></div>
-          <div className="bg-white/10 border border-white/15 rounded-[11px] p-3"><div className="font-[700] text-white">The fix</div><div className="text-white/85 mt-1">NetKeeper deletes those two corrupt files (with your admin password) and then offers to reboot, so macOS rebuilds a clean mapping from scratch - the reliable cure for the slashed icon that a simple radio reset cannot fix.</div></div>
+          <div className="bg-white/10 border border-white/15 rounded-[11px] p-3"><div className="font-[700] text-white">The fix</div><div className="text-white/85 mt-1">WiKeep deletes those two corrupt files (with your admin password) and then offers to reboot, so macOS rebuilds a clean mapping from scratch - the reliable cure for the slashed icon that a simple radio reset cannot fix.</div></div>
         </div>
         <div className="mt-4 bg-white/10 border border-white/15 rounded-[11px] p-3">
           <div className="font-[700] text-[12px] text-white">How to use it</div>
           <div className="mt-2 space-y-1.5 text-[12px] text-white/90">
-            <div className="flex gap-2"><span className="w-5 h-5 rounded-full bg-white text-[#0a84ff] flex items-center justify-center text-[10px] font-[800] shrink-0">1</span><span><span className="font-[600]">Automatic:</span> turn on <span className="font-[600]">Auto Deep Repair</span> in Settings. On every scan, if the radio is ON but DHCP has no valid IP, NetKeeper runs the repair for you.</span></div>
+            <div className="flex gap-2"><span className="w-5 h-5 rounded-full bg-white text-[#0a84ff] flex items-center justify-center text-[10px] font-[800] shrink-0">1</span><span><span className="font-[600]">Automatic:</span> turn on <span className="font-[600]">Auto Deep Repair</span> in Settings. On every scan, if the radio is ON but DHCP has no valid IP, WiKeep runs the repair for you.</span></div>
             <div className="flex gap-2"><span className="w-5 h-5 rounded-full bg-white text-[#0a84ff] flex items-center justify-center text-[10px] font-[800] shrink-0">2</span><span><span className="font-[600]">Manual:</span> open Settings and press <span className="font-[600]">Run Deep Repair Now</span> whenever you see the slashed icon.</span></div>
             <div className="flex gap-2"><span className="w-5 h-5 rounded-full bg-white text-[#0a84ff] flex items-center justify-center text-[10px] font-[800] shrink-0">3</span><span>Type your Mac password in the native macOS prompt, then choose <span className="font-[600]">Reboot Now</span> to finish the repair.</span></div>
           </div>
-          <div className="flex items-center gap-1.5 mt-3 text-[10px] text-white/75"><Lock className="w-3 h-3"/>Password is handled only by macOS - NetKeeper never stores it. Repair runs only when the radio is ON, with a 5-minute cooldown.</div>
+          <div className="flex items-center gap-1.5 mt-3 text-[10px] text-white/75"><Lock className="w-3 h-3"/>Password is handled only by macOS - WiKeep never stores it. Repair runs only when the radio is ON, with a 5-minute cooldown.</div>
         </div>
       </div>
       <div className="bg-white border border-black/[0.08] rounded-[14px] p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-[10px] bg-[#0a84ff]/10 border border-[#0a84ff]/20 flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-[#0a84ff]"/></div>
-          <div><div className="font-[700] text-[15px]">What NetKeeper does</div><div className="text-[12px] text-[#8e8e93] mt-0.5">A Wi-Fi helper for macOS. It scans nearby networks, shows signal and IP details, keeps your connection alive, and recovers the radio when it stops working.</div></div>
+          <div><div className="font-[700] text-[15px]">What WiKeep does</div><div className="text-[12px] text-[#8e8e93] mt-0.5">A Wi-Fi helper for macOS. It scans nearby networks, shows signal and IP details, keeps your connection alive, and recovers the radio when it stops working.</div></div>
         </div>
         <div className="mt-4 text-[12px] leading-[1.6] text-[#1d1d1f]">
-          NetKeeper uses the airport tool that ships with macOS to list all networks within range. For every network you see its name (SSID), hardware address (BSSID), signal (RSSI in dBm), channel, and security type. There is no filter: home routers, phone hotspots, and any brand of router all show up.
+          WiKeep uses the airport tool that ships with macOS to list all networks within range. For every network you see its name (SSID), hardware address (BSSID), signal (RSSI in dBm), channel, and security type. There is no filter: home routers, phone hotspots, and any brand of router all show up.
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 mono text-[11px]">
           <div className="bg-[#f5f5f7] rounded-[10px] p-3 border border-black/[0.06]"><div className="font-[700]">What we scan</div><div className="mt-1 text-[#6e6e73]">airport -s - {settings.interface_name} - 2.4GHz and 5GHz - all vendors - no filter</div></div>
-          <div className="bg-[#f5f5f7] rounded-[10px] p-3 border border-black/[0.06]"><div className="font-[700]">What we store</div><div className="mt-1 text-[#6e6e73]">~/.config/netkeeper/ - settings and logs stay on your Mac</div></div>
+          <div className="bg-[#f5f5f7] rounded-[10px] p-3 border border-black/[0.06]"><div className="font-[700]">What we store</div><div className="mt-1 text-[#6e6e73]">~/.config/wikeep/ - settings and logs stay on your Mac</div></div>
         </div>
       </div>
 
       <div className="bg-white border border-black/[0.08] rounded-[14px] p-5">
         <h3 className="font-[700] text-[13px]">Getting started</h3>
         <div className="mt-3 space-y-2.5 text-[12px]">
-          <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">1</span><span><span className="font-[600]">Grant Location access.</span> macOS only lets apps run a Wi-Fi scan when they have Location permission. NetKeeper asks on first launch. If you skipped it, go to System Settings, Privacy and Security, Location, and turn on NetKeeper, then scan again.</span></div>
+          <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">1</span><span><span className="font-[600]">Grant Location access.</span> macOS only lets apps run a Wi-Fi scan when they have Location permission. WiKeep asks on first launch. If you skipped it, go to System Settings, Privacy and Security, Location, and turn on WiKeep, then scan again.</span></div>
           <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">2</span><span><span className="font-[600]">Run a scan.</span> Use the Scan button on the sidebar or the Rescan button on the Networks tab. The list updates with every network in range.</span></div>
           <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">3</span><span><span className="font-[600]">Read the Dashboard.</span> The Overview tab shows your current network, IP details, signal quality, and statistics about nearby networks.</span></div>
           <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">4</span><span><span className="font-[600]">If you see nothing.</span> macOS sometimes powers off the Wi-Fi radio after wake. Press Reset in the sidebar or use Emergency Reset. It turns the radio off and back on through networksetup.</span></div>
@@ -575,17 +575,17 @@ function HelpPage({ settings }: { settings: AppSettings }){
           <div><span className="font-[600]">Keep-Alive Interval.</span> How often the keep-alive ping runs, for example 30s or 5m.</div>
           <div><span className="font-[600]">Auto-Heal Radio Crash.</span> If a scan finds zero networks, resets {settings.interface_name} after 5 seconds.</div>
           <div><span className="font-[600]">Simulation Mode (Demo).</span> Shows demo controls to test a disconnect and recovery.</div>
-          <div><span className="font-[600]">Auto-Reconnect on Drop.</span> When the link drops, NetKeeper rejoins your last or preferred network on its own.</div>
+          <div><span className="font-[600]">Auto-Reconnect on Drop.</span> When the link drops, WiKeep rejoins your last or preferred network on its own.</div>
           <div><span className="font-[600]">Reconnect on Wake.</span> Detects a system wake and rejoins. Reconnect on Wake and Keep-Alive work together.</div>
           <div><span className="font-[600]">Auto-Join / Auto-Switch Strongest.</span> Moves to the strongest network among your preferred/last networks when it is clearly better (or when quality falls below the threshold). It only switches to networks you already know, so it never asks for a password.</div>
           <div><span className="font-[600]">Block Open Networks.</span> Excludes unencrypted networks from auto-join and auto-switch.</div>
           <div><span className="font-[600]">Notify on Disconnect / IP Change.</span> Shows a system notification when these events happen.</div>
-          <div><span className="font-[600]">Launch at Login, Menu Bar, Dock.</span> Launch at Login starts NetKeeper after reboot. Run in Menu Bar keeps it alive in the tray when you close the window (turn it off to quit on close). Show Dock Icon shows or hides the Dock icon.</div>
+          <div><span className="font-[600]">Launch at Login, Menu Bar, Dock.</span> Launch at Login starts WiKeep after reboot. Run in Menu Bar keeps it alive in the tray when you close the window (turn it off to quit on close). Show Dock Icon shows or hides the Dock icon.</div>
           <div><span className="font-[600]">Preferred Band.</span> Which band to prefer when joining a network: Auto, 2.4GHz, or 5GHz.</div>
-          <div><span className="font-[600]">Signal Drop Threshold.</span> The quality percentage at which NetKeeper treats the signal as too weak.</div>
-          <div><span className="font-[600]">Preferred Networks.</span> A comma-separated list of networks you prefer. Leave blank to let NetKeeper decide.</div>
+          <div><span className="font-[600]">Signal Drop Threshold.</span> The quality percentage at which WiKeep treats the signal as too weak.</div>
+          <div><span className="font-[600]">Preferred Networks.</span> A comma-separated list of networks you prefer. Leave blank to let WiKeep decide.</div>
           <div><span className="font-[600]">Ping Targets.</span> The router, DNS, and internet addresses used by Diagnostics and the dashboard latency card.</div>
-          <div><span className="font-[600]">Interface.</span> The Wi-Fi device used for commands, usually en0 or en1. NetKeeper detects it automatically.</div>
+          <div><span className="font-[600]">Interface.</span> The Wi-Fi device used for commands, usually en0 or en1. WiKeep detects it automatically.</div>
           <div><span className="font-[600]">Auto Deep Repair.</span> On every scan, if the radio is ON but DHCP has no valid IP, delete NetworkInterfaces.plist and preferences.plist and prompt a reboot - the signature fix.</div>
         </div>
       </div>
@@ -595,14 +595,14 @@ function HelpPage({ settings }: { settings: AppSettings }){
         <div className="mt-3 space-y-2.5 text-[12px]">
           <div className="flex items-start gap-3 bg-[#eff6ff] border border-[#0a84ff]/25 rounded-[11px] p-3">
             <div className="w-6 h-6 rounded-full bg-[#0a84ff] text-white flex items-center justify-center text-[11px] font-[700] shrink-0">!</div>
-            <div><span className="font-[600]">Wi-Fi icon greyed out with a slash (radio is ON).</span> The interface-to-service mapping is corrupt. Emergency Reset will not fix this. Open Settings, press <span className="font-[600]">Run Deep Repair Now</span>, enter your Mac password, and choose Reboot Now. NetKeeper deletes NetworkInterfaces.plist and preferences.plist so macOS rebuilds the mapping.</div>
+            <div><span className="font-[600]">Wi-Fi icon greyed out with a slash (radio is ON).</span> The interface-to-service mapping is corrupt. Emergency Reset will not fix this. Open Settings, press <span className="font-[600]">Run Deep Repair Now</span>, enter your Mac password, and choose Reboot Now. WiKeep deletes NetworkInterfaces.plist and preferences.plist so macOS rebuilds the mapping.</div>
           </div>
           <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">1</span><span><span className="font-[600]">No networks, radio appears off.</span> macOS sometimes powers off the radio after wake. Use Emergency Reset in the sidebar. It runs networksetup to turn the radio off and back on.</span></div>
           <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">2</span><span><span className="font-[600]">Only one network shows.</span> Location access is likely off. Allow it in System Settings, Privacy and Security, Location, then scan again.</span></div>
           <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">3</span><span><span className="font-[600]">Slow internet while connected.</span> Open the Diagnostics tab and run the checks. High latency or packet loss points to a signal or router problem.</span></div>
           <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">4</span><span><span className="font-[600]">IP shows --.</span> The interface has no address yet. Use Force Restart Service on the demo bar, which renews DHCP.</span></div>
           <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">5</span><span><span className="font-[600]">Drops after sleep.</span> Turn on Reconnect on Wake and Keep-Alive Ping. If it still drops, check your router for channel and band settings.</span></div>
-          <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">6</span><span><span className="font-[600]">Trouble remains.</span> Open the Recovery Log tab. The log records scans, resets, and errors, and is stored at ~/.config/netkeeper/logs.jsonl.</span></div>
+          <div className="flex gap-3"><span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-[700]">6</span><span><span className="font-[600]">Trouble remains.</span> Open the Recovery Log tab. The log records scans, resets, and errors, and is stored at ~/.config/wikeep/logs.jsonl.</span></div>
         </div>
       </div>
 
@@ -614,7 +614,7 @@ function HelpPage({ settings }: { settings: AppSettings }){
           <div><span className="font-[600]">What is BSSID?</span> The unique hardware address of an access point. It identifies a specific radio, not just the network name.</div>
           <div><span className="font-[600]">What does RSSI mean?</span> It is signal strength in dBm. Closer to zero is stronger. Around -40 to -60 is good, while below -75 gets unstable.</div>
           <div><span className="font-[600]">Why does the network count change?</span> Scanning depends on where you are, nearby routers, and interference. Counts can differ on each scan.</div>
-          <div><span className="font-[600]">Does NetKeeper send data anywhere?</span> No. Settings and logs stay in ~/.config/netkeeper/ on your Mac.</div>
+          <div><span className="font-[600]">Does WiKeep send data anywhere?</span> No. Settings and logs stay in ~/.config/wikeep/ on your Mac.</div>
           <div><span className="font-[600]">Can it see the 6GHz band?</span> The airport tool reports 2.4GHz and 5GHz channels. Newer 6GHz routers may still appear if they also broadcast on 5GHz.</div>
         </div>
       </div>
@@ -657,16 +657,16 @@ function OnboardingModal({ onComplete, onLog }: { onComplete: ()=>void; onLog: (
   };
   const handleContinue = ()=>{
     setDone(true);
-    setTimeout(()=>{ try{ invoke("set_onboarded"); localStorage.setItem("netkeeper_onboarded","true"); }catch{} onComplete(); }, 900);
+    setTimeout(()=>{ try{ invoke("set_onboarded"); localStorage.setItem("wikeep_onboarded","true"); }catch{} onComplete(); }, 900);
   };
   if(done){
     return (
       <div className="absolute inset-0 z-[100] bg-[#fbfbfc]/95 backdrop-blur-[2px] flex items-center justify-center p-6">
         <div className="w-[480px] bg-white border border-black/[0.08] rounded-[16px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] p-10 text-center">
           <div className="w-14 h-14 rounded-full bg-[#30d158]/10 border border-[#30d158]/30 flex items-center justify-center mx-auto"><Check className="w-7 h-7 text-[#30d158]"/></div>
-          <div className="font-[700] text-[18px] mt-4">Welcome to NetKeeper</div>
+          <div className="font-[700] text-[18px] mt-4">Welcome to WiKeep</div>
           <div className="text-[12px] text-[#6e6e73] mt-1">Monitoring your networks.</div>
-          <div className="mt-4 mono text-[10px] text-[#8e8e93] leading-[1.6]">{iface} - Keep-Alive 30s - Auto-Heal ON<br/>Logs in ~/.config/netkeeper/logs.jsonl</div>
+          <div className="mt-4 mono text-[10px] text-[#8e8e93] leading-[1.6]">{iface} - Keep-Alive 30s - Auto-Heal ON<br/>Logs in ~/.config/wikeep/logs.jsonl</div>
         </div>
       </div>
     )
@@ -676,24 +676,24 @@ function OnboardingModal({ onComplete, onLog }: { onComplete: ()=>void; onLog: (
       <div className="w-[560px] bg-white border border-black/[0.08] rounded-[16px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden">
         <div className="h-[64px] px-6 flex items-center justify-between border-b border-black/[0.06] bg-[#fcfcfc]">
           <div className="flex items-center">
-            <div className="w-9 h-9 rounded-[8px] bg-[#0a84ff] shadow flex items-center justify-center overflow-hidden"><img src="favicon.png" alt="NetKeeper" className="w-9 h-9 object-cover"/></div>
-            <div className="ml-3"><div className="font-[700] text-[14px] leading-none">NetKeeper</div><div className="mono text-[10px] text-[#8e8e93] mt-1">v3.0.0 - {iface}</div></div>
+            <div className="w-9 h-9 rounded-[8px] bg-[#0a84ff] shadow flex items-center justify-center overflow-hidden"><img src="favicon.png" alt="WiKeep" className="w-9 h-9 object-cover"/></div>
+            <div className="ml-3"><div className="font-[700] text-[14px] leading-none">WiKeep</div><div className="mono text-[10px] text-[#8e8e93] mt-1">v3.0.0 - {iface}</div></div>
           </div>
           <span className="text-[10px] font-[700] tracking-widest uppercase bg-[#1d1d1f] text-white rounded-full px-2.5 py-1">First run</span>
         </div>
         <div className="p-7 pb-5">
           <h1 className="font-[700] text-[22px] leading-tight">Keep your networks alive.</h1>
-          <p className="text-[13px] text-[#6e6e73] mt-1.5">Set up NetKeeper and stop worrying about Wi-Fi that drops. It scans nearby networks, keeps your connection alive, and restarts the radio if it stops working.</p>
+          <p className="text-[13px] text-[#6e6e73] mt-1.5">Set up WiKeep and stop worrying about Wi-Fi that drops. It scans nearby networks, keeps your connection alive, and restarts the radio if it stops working.</p>
           <p className="mono text-[10px] text-[#8e8e93] mt-3 mb-6">3 quick steps - about 30 seconds - everything stays on your Mac</p>
 
           <div className="space-y-3">
             <div className={`border rounded-[12px] p-4 ${granted?'border-[#30d158]/40 bg-[#f0fdf5]':'border-black/[0.08] bg-[#fafafa]'}`}>
               <Steps n={1}>
                 <div className="flex items-center justify-between gap-3">
-                  <div><div className="font-[600] text-[13px]">Grant Wi-Fi Scanning Access</div><div className="text-[11px] text-[#6e6e73] mt-0.5 leading-[1.4]">macOS only shows apps a list of nearby networks after they get Location permission. NetKeeper uses that permission just to see SSIDs. It does not track where you are.</div></div>
+                  <div><div className="font-[600] text-[13px]">Grant Wi-Fi Scanning Access</div><div className="text-[11px] text-[#6e6e73] mt-0.5 leading-[1.4]">macOS only shows apps a list of nearby networks after they get Location permission. WiKeep uses that permission just to see SSIDs. It does not track where you are.</div></div>
                   {granted ? <span className="flex items-center gap-1 text-[#30d158] font-[600] text-[12px] shrink-0"><Check className="w-4 h-4"/>Granted</span> : <button onClick={handleGrant} disabled={granting} className="h-9 px-4 bg-[#0a84ff] text-white rounded-[9px] text-[12px] font-[600] shrink-0 hover:bg-[#0066cc] active:bg-[#0055b3]">{granting?'Requesting...':'Approve'}</button>}
                 </div>
-                {denied && <div className="mt-3 flex items-center gap-2 bg-white border border-[#ff3b30]/20 rounded-[8px] px-3 py-2 text-[11px] text-[#c0392b]"><AlertTriangle className="w-3.5 h-3.5 shrink-0"/>Permission was not granted. Open System Settings, then Privacy and Security, Location Services, turn on NetKeeper, and click Approve again.</div>}
+                {denied && <div className="mt-3 flex items-center gap-2 bg-white border border-[#ff3b30]/20 rounded-[8px] px-3 py-2 text-[11px] text-[#c0392b]"><AlertTriangle className="w-3.5 h-3.5 shrink-0"/>Permission was not granted. Open System Settings, then Privacy and Security, Location Services, turn on WiKeep, and click Approve again.</div>}
                 <div className="mt-3 flex items-center gap-3 mono text-[10px] text-[#8e8e93]"><span className="flex items-center gap-1"><span className={`w-1.5 h-1.5 rounded-full ${granted?'bg-[#30d158]':'bg-black/20'}`}/>Location: {granted?'allowed':'pending'}</span><span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#30d158]"/>Detects {iface} and all vendors: MTN, Starlink, any SSID</span></div>
               </Steps>
             </div>
@@ -701,7 +701,7 @@ function OnboardingModal({ onComplete, onLog }: { onComplete: ()=>void; onLog: (
             <div className="border border-black/[0.08] rounded-[12px] p-4 bg-white">
               <Steps n={2}>
                 <div className="font-[600] text-[13px]">Network Tools Access</div>
-                <div className="text-[11px] text-[#6e6e73] mt-0.5 leading-[1.4]">NetKeeper reads your IP, gateway, radio state, and signal using tools that already ship with macOS. They are read-only. No installs and no passwords are asked.</div>
+                <div className="text-[11px] text-[#6e6e73] mt-0.5 leading-[1.4]">WiKeep reads your IP, gateway, radio state, and signal using tools that already ship with macOS. They are read-only. No installs and no passwords are asked.</div>
                 <div className="mt-3 flex items-center gap-3 mono text-[10.5px] text-[#1d1d1f]">{tools.map(t=>(
                   <span key={t.name} className={`flex items-center gap-1 px-2 py-1 rounded-md border ${t.ok?'bg-[#f0fdf5] border-[#30d158]/30 text-[#1d7a37]':'bg-[#f5f5f7] border-black/[0.06] text-[#8e8e93]'}`}>{t.ok?<Check className="w-3 h-3"/>:<span className="w-3 h-3 rounded-full border border-black/20"/>}{t.name}</span>
                 ))}</div>
@@ -711,15 +711,15 @@ function OnboardingModal({ onComplete, onLog }: { onComplete: ()=>void; onLog: (
             <div className="border border-black/[0.08] rounded-[12px] p-4 bg-white">
               <Steps n={3}>
                 <div className="font-[600] text-[13px]">Ready to Keep Alive</div>
-                <div className="text-[11px] text-[#6e6e73] mt-0.5 leading-[1.4]">NetKeeper pings a target every 30 seconds so macOS does not drop the connection, resets the radio if a scan finds zero networks, and writes every event to a log stored on your Mac.</div>
+                <div className="text-[11px] text-[#6e6e73] mt-0.5 leading-[1.4]">WiKeep pings a target every 30 seconds so macOS does not drop the connection, resets the radio if a scan finds zero networks, and writes every event to a log stored on your Mac.</div>
                 <div className="mt-3"><button onClick={handleContinue} disabled={!granted} className={`h-10 px-5 rounded-[9px] text-[13px] font-[600] ${granted?'bg-[#0a84ff] text-white hover:bg-[#0066cc] active:bg-[#0055b3]':'bg-black/10 text-black/40 cursor-not-allowed'}`}>Continue to App</button></div>
               </Steps>
             </div>
           </div>
         </div>
         <div className="px-7 py-3 border-t border-black/[0.06] bg-[#fcfcfc] flex items-center justify-between">
-          <div className="flex items-center gap-1.5 mono text-[10px] text-[#8e8e93]"><Lock className="w-3 h-3"/>No data leaves your Mac. Logs stored locally at ~/.config/netkeeper/</div>
-          <button onClick={()=>{ try{ localStorage.setItem("netkeeper_onboarded","true"); }catch{} onComplete(); }} className="text-[11px] text-[#8e8e93] underline hover:text-[#1d1d1f]">Skip setup</button>
+          <div className="flex items-center gap-1.5 mono text-[10px] text-[#8e8e93]"><Lock className="w-3 h-3"/>No data leaves your Mac. Logs stored locally at ~/.config/wikeep/</div>
+          <button onClick={()=>{ try{ localStorage.setItem("wikeep_onboarded","true"); }catch{} onComplete(); }} className="text-[11px] text-[#8e8e93] underline hover:text-[#1d1d1f]">Skip setup</button>
         </div>
       </div>
     </div>
@@ -727,7 +727,7 @@ function OnboardingModal({ onComplete, onLog }: { onComplete: ()=>void; onLog: (
 }
 
 export default function App(){
-  const [activeTab, setActiveTab] = useState<Tab>(()=>{ try{ return localStorage.getItem("netkeeper_welcome_seen")==="true" ? "overview" : "welcome"; }catch{ return "welcome"; } });
+  const [activeTab, setActiveTab] = useState<Tab>(()=>{ try{ return localStorage.getItem("wikeep_welcome_seen")==="true" ? "overview" : "welcome"; }catch{ return "welcome"; } });
   const [tourOpen, setTourOpen] = useState(false);
   const [networks, setNetworks] = useState<Network[]>([]);
   const [currentSsid, setCurrentSsid] = useState<string>("");
@@ -735,7 +735,7 @@ export default function App(){
   const [isResetting, setIsResetting] = useState(false);
   const [diagRunning, setDiagRunning] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([
-    { id: "1", timestamp: new Date().toLocaleTimeString(), time_ms: Date.now(), level: "info", source: "System", message: "NetKeeper v1.0 Final - en ready - all vendors" },
+    { id: "1", timestamp: new Date().toLocaleTimeString(), time_ms: Date.now(), level: "info", source: "System", message: "WiKeep v1.0 Final - en ready - all vendors" },
     { id: "2", timestamp: new Date().toLocaleTimeString(), time_ms: Date.now(), level: "info", source: "System", message: "Auto-heal: ON - Keep-Alive: ON - Driver Brcm4360 - all SSIDs" },
   ]);
   const [keepAlive, setKeepAlive] = useState(true);
@@ -797,7 +797,7 @@ export default function App(){
     try{ const autoStart = await invoke<boolean>("get_autostart"); setSettings(s=>({...s, launch_at_login: autoStart})); }catch{}
     try{ const iface = await invoke<string>("get_wifi_interface"); if(iface) setSettings(s=>(s.interface_name===""||s.interface_name==="en"||s.interface_name==="en0")?{...s, interface_name: iface}:s); }catch{}
     try{ const l = await invoke<LogEntry[]>("get_logs"); if(l && l.length>0) setLogs(l); }catch{}
-    try{ const onboarded = await invoke<boolean>("get_onboarding_status"); const local = localStorage.getItem("netkeeper_onboarded"); if(!onboarded && local!=="true") setShowOnboarding(true); }catch{ const local = localStorage.getItem("netkeeper_onboarded"); if(local!=="true") setShowOnboarding(true); }
+    try{ const onboarded = await invoke<boolean>("get_onboarding_status"); const local = localStorage.getItem("wikeep_onboarded"); if(!onboarded && local!=="true") setShowOnboarding(true); }catch{ const local = localStorage.getItem("wikeep_onboarded"); if(local!=="true") setShowOnboarding(true); }
     try{ const ip = await invoke<any>("get_ip_info"); setIpInfo(ip); }catch{}
   })(); },[]);
 
@@ -849,7 +849,7 @@ export default function App(){
         if(!targetsOk && !wasDownRef.current){
           wasDownRef.current = true;
           await addLog("warn","Keep-Alive","no response from "+targets.map(([,h]:any)=>h).join(", ")+" - "+settings.interface_name+" may be down");
-          if(settings.notify_disconnect) notify("NetKeeper: connection lost","No response from your network on "+settings.interface_name);
+          if(settings.notify_disconnect) notify("WiKeep: connection lost","No response from your network on "+settings.interface_name);
         } else if(targetsOk && wasDownRef.current){
           wasDownRef.current = false;
           await addLog("success","Keep-Alive","responses back from "+targets.map(([,h]:any)=>h).join(", "));
@@ -861,7 +861,7 @@ export default function App(){
     return ()=>clearInterval(id);
   },[keepAlive, settings.keep_alive_interval, ipInfo.router, settings.ping_router_target, settings.ping_dns_target, settings.ping_internet_target, settings.notify_disconnect]);
 
-  const markWelcomeSeen = () => { try{ localStorage.setItem("netkeeper_welcome_seen","true"); }catch{} };
+  const markWelcomeSeen = () => { try{ localStorage.setItem("wikeep_welcome_seen","true"); }catch{} };
 
   const notify = async (title: string, body: string) => {
     try{
@@ -1129,7 +1129,7 @@ export default function App(){
   useEffect(()=>{
     const ip = ipInfo.ip;
     if(ip && ip!=="--" && lastIpRef.current!=="--" && ip!==lastIpRef.current && settings.notify_ip_change){
-      notify("NetKeeper: IP changed","New IP "+ip+" on "+settings.interface_name);
+      notify("WiKeep: IP changed","New IP "+ip+" on "+settings.interface_name);
     }
     if(ip && ip!=="--") lastIpRef.current = ip;
   },[ipInfo.ip, settings.notify_ip_change, settings.interface_name]);
@@ -1138,7 +1138,7 @@ export default function App(){
   useEffect(()=>{
     const connected = currentSsid.replace(/^Current Wi-Fi Network:\s*/i,"").trim().length>0;
     if(prevConnectedRef.current && !connected && settings.notify_disconnect){
-      notify("NetKeeper: disconnected","You left the Wi-Fi network on "+settings.interface_name);
+      notify("WiKeep: disconnected","You left the Wi-Fi network on "+settings.interface_name);
     }
     prevConnectedRef.current = connected;
   },[currentSsid, settings.notify_disconnect, settings.interface_name]);
@@ -1149,8 +1149,8 @@ export default function App(){
 
       <div className="w-[232px] bg-[#f5f5f7] border-r border-black/[0.08] flex flex-col p-3 shrink-0">
         <div className="flex items-center gap-2.5 px-2.5 py-3 mb-3">
-          <div className="w-8 h-8 rounded-[8px] bg-[#0a84ff] shadow flex items-center justify-center overflow-hidden"><img src="favicon.png" alt="NetKeeper" className="w-8 h-8 object-cover"/></div>
-          <div><div className="font-[700] text-[13.5px] leading-none">NetKeeper</div><div className="mono text-[10px] text-[#8e8e93] mt-1">v1.0 - Build</div></div>
+          <div className="w-8 h-8 rounded-[8px] bg-[#0a84ff] shadow flex items-center justify-center overflow-hidden"><img src="favicon.png" alt="WiKeep" className="w-8 h-8 object-cover"/></div>
+          <div><div className="font-[700] text-[13.5px] leading-none">WiKeep</div><div className="mono text-[10px] text-[#8e8e93] mt-1">v1.0 - Build</div></div>
         </div>
         <div className="space-y-0.5">
           {[
@@ -1318,9 +1318,9 @@ export default function App(){
               </div>
               <div className="bg-white border border-black/[0.08] rounded-[14px] divide-y divide-black/[0.06]">
                 {[
-                  {label:"Launch at Login", desc:"Start NetKeeper automatically after reboot - uses macOS LaunchAgent", val:settings.launch_at_login, set:(v:boolean)=>setSettings(s=>({...s, launch_at_login: v}))},
-                  {label:"Run in Menu Bar (Tray)", desc:"Keep NetKeeper running in the menu bar when the window is closed - keeps pinging every 30s", val:settings.show_menu_bar, set:(v:boolean)=>setSettings(s=>({...s, show_menu_bar: v}))},
-                  {label:"Show Dock Icon", desc:"Show the NetKeeper icon in the Dock", val:settings.show_dock, set:(v:boolean)=>setSettings(s=>({...s, show_dock: v}))},
+                  {label:"Launch at Login", desc:"Start WiKeep automatically after reboot - uses macOS LaunchAgent", val:settings.launch_at_login, set:(v:boolean)=>setSettings(s=>({...s, launch_at_login: v}))},
+                  {label:"Run in Menu Bar (Tray)", desc:"Keep WiKeep running in the menu bar when the window is closed - keeps pinging every 30s", val:settings.show_menu_bar, set:(v:boolean)=>setSettings(s=>({...s, show_menu_bar: v}))},
+                  {label:"Show Dock Icon", desc:"Show the WiKeep icon in the Dock", val:settings.show_dock, set:(v:boolean)=>setSettings(s=>({...s, show_dock: v}))},
                 ].map(s=>(
                   <div key={s.label} className="flex items-center justify-between p-4"><div><div className="font-[600] text-[13px]">{s.label}</div><div className="text-[11px] text-[#8e8e93] mt-0.5 leading-[1.3]">{s.desc}</div></div><button onClick={()=>s.set(!s.val)} className={`w-11 h-6 rounded-full p-0.5 transition ${s.val?'bg-[#0a84ff]':'bg-black/20'}`}><div className={`w-5 h-5 rounded-full bg-white shadow transition ${s.val?'translate-x-5':'translate-x-0'}`}/></button></div>
                 ))}
@@ -1336,7 +1336,7 @@ export default function App(){
                 <div className="mono text-[10px] text-[#8e8e93] mt-2">Router target auto-fills from gateway when left blank - used by Diagnostics and Dashboard live ping</div>
               </div>
             </div>
-            <div className="bg-[#f5f5f7] border border-black/[0.06] rounded-[12px] p-3 mono text-[11px] text-[#6e6e73] leading-[1.5]">System: en auto-heal enabled - If radio crashes after wake, Emergency Reset runs networksetup cycle + BSSID cache purge - Logs persisted in ~/.config/netkeeper/logs.jsonl - All vendors supported - MTN, Starlink, Tenda, TP-Link, any SSID - No filter</div>
+            <div className="bg-[#f5f5f7] border border-black/[0.06] rounded-[12px] p-3 mono text-[11px] text-[#6e6e73] leading-[1.5]">System: en auto-heal enabled - If radio crashes after wake, Emergency Reset runs networksetup cycle + BSSID cache purge - Logs persisted in ~/.config/wikeep/logs.jsonl - All vendors supported - MTN, Starlink, Tenda, TP-Link, any SSID - No filter</div>
           </div>
           )}
 
@@ -1348,7 +1348,7 @@ export default function App(){
 
         <div className="h-[28px] bg-white border-t border-black/[0.08] flex items-center justify-between px-5 shrink-0">
           <div className="flex items-center gap-3 mono text-[11px] text-[#8e8e93]">
-            <span className="font-[700] text-[#1d1d1f]">NetKeeper v1.0 - Build</span>
+            <span className="font-[700] text-[#1d1d1f]">WiKeep v1.0 - Build</span>
             <span className="hidden sm:inline">{settings.interface_name} - {currentSsid.replace('Current Wi-Fi Network: ','').slice(0,18) || 'Not connected'} - {networks.length} nets - all types - {logs.length} logs - KA {keepAlive? settings.keep_alive_interval : 'OFF'}</span>
           </div>
           <div className="flex items-center gap-3 mono text-[11px] text-[#8e8e93]">
@@ -1358,7 +1358,7 @@ export default function App(){
           </div>
         </div>
 
-        {showOnboarding && <OnboardingModal onComplete={()=>{ setShowOnboarding(false); try{ localStorage.setItem("netkeeper_onboarded","true"); }catch{} }} onLog={addLog} />}
+        {showOnboarding && <OnboardingModal onComplete={()=>{ setShowOnboarding(false); try{ localStorage.setItem("wikeep_onboarded","true"); }catch{} }} onLog={addLog} />}
         <Tour open={tourOpen} onClose={()=>setTourOpen(false)} onNavigate={(t)=>setActiveTab(t)} />
       </div>
     </div>

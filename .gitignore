@@ -40,8 +40,8 @@ Thumbs.db
 # --- Logs ---
 logs/
 *.log
-~/.config/netkeeper/
-netkeeper.log
+~/.config/wikeep/
+wikeep.log
 
 # --- Env ---
 .env

@@ -1,6 +1,6 @@
-# Contributing to NetKeeper
+# Contributing to WiKeep
 
-Thanks for wanting to help — NetKeeper is a solo-built macOS app that would genuinely benefit from collaborators. This guide covers how to set up, the conventions to follow, and how to get a change merged.
+Thanks for wanting to help — WiKeep is a solo-built macOS app that would genuinely benefit from collaborators. This guide covers how to set up, the conventions to follow, and how to get a change merged.
 
 By participating you agree to keep discussions respectful and constructive.
 
@@ -29,7 +29,7 @@ By participating you agree to keep discussions respectful and constructive.
 
 ```bash
 git clone git@github.com:FehintoluSamuel/NetKeeper.git
-cd NetKeeper
+cd WiKeep
 npm install
 npm run tauri dev
 ```
@@ -92,10 +92,10 @@ If you changed real Wi-Fi/repair behavior, **also verify on macOS hardware** and
 
 Include:
 1. macOS version and chip.
-2. NetKeeper version (shown in the title/window).
+2. WiKeep version (shown in the title/window).
 3. Steps to reproduce.
 4. Expected vs actual behavior.
-5. Recovery Log excerpts (`~/.config/netkeeper/logs.jsonl`).
+5. Recovery Log excerpts (`~/.config/wikeep/logs.jsonl`).
 6. Screenshots/video if the UI is involved.
 
 ---
@@ -104,4 +104,4 @@ Include:
 
 No `LICENSE` file exists yet, so contribution terms are not formally defined. If you'd like to contribute under a specific license (MIT is the suggested default), please raise it in an issue first so it can be added.
 
-Thanks for helping make NetKeeper better.
+Thanks for helping make WiKeep better.

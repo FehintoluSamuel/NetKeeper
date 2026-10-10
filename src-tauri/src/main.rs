@@ -35,7 +35,7 @@ pub struct LogEntry { id: String, timestamp: String, time_ms: i64, level: String
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DhcpState { healthy: bool, ip: String, state: String, detail: String, }
 
-fn config_dir() -> PathBuf { let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); let p = PathBuf::from(home).join(".config").join("netkeeper"); let _ = fs::create_dir_all(&p); p }
+fn config_dir() -> PathBuf { let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); let p = PathBuf::from(home).join(".config").join("wikeep"); let _ = fs::create_dir_all(&p); p }
 fn settings_path() -> PathBuf { config_dir().join("settings.json") }
 fn logs_path() -> PathBuf { config_dir().join("logs.jsonl") }
 fn onboarded_path() -> PathBuf { config_dir().join(".onboarded") }
@@ -45,14 +45,14 @@ fn onboarded_path() -> PathBuf { config_dir().join(".onboarded") }
 #[command(async)] fn reset_onboarding() -> Result<String, String> { let p=onboarded_path(); if p.exists() { let _=fs::remove_file(&p); } Ok("reset".to_string()) }
 
 // Auto-start at login uses a macOS LaunchAgent so the app comes back after reboot.
-fn launch_agent_path() -> PathBuf { let home=std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); PathBuf::from(home).join("Library").join("LaunchAgents").join("com.netkeeper.app.plist") }
+fn launch_agent_path() -> PathBuf { let home=std::env::var("HOME").unwrap_or_else(|_| ".".to_string()); PathBuf::from(home).join("Library").join("LaunchAgents").join("com.wikeep.app.plist") }
 fn is_packaged_app() -> bool { std::env::current_exe().map(|e| e.to_string_lossy().contains(".app/")).unwrap_or(false) }
 fn sync_autostart(enabled: bool) -> Result<String, String> {
     if !is_packaged_app() { return Ok("skipped: only manages LaunchAgent from the installed app".to_string()); }
     let path=launch_agent_path();
     if enabled {
         let exe=std::env::current_exe().map_err(|e| e.to_string())?;
-        let plist=format!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>Label</key>\n\t<string>com.netkeeper.app</string>\n\t<key>ProgramArguments</key>\n\t<array>\n\t\t<string>{}</string>\n\t</array>\n\t<key>RunAtLoad</key>\n\t<true/>\n\t<key>ProcessType</key>\n\t<string>Background</string>\n</dict>\n</plist>\n", exe.display());
+        let plist=format!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>Label</key>\n\t<string>com.wikeep.app</string>\n\t<key>ProgramArguments</key>\n\t<array>\n\t\t<string>{}</string>\n\t</array>\n\t<key>RunAtLoad</key>\n\t<true/>\n\t<key>ProcessType</key>\n\t<string>Background</string>\n</dict>\n</plist>\n", exe.display());
         fs::write(&path, plist).map_err(|e| e.to_string())?;
     } else if path.exists() {
         fs::remove_file(&path).map_err(|e| e.to_string())?;
@@ -260,7 +260,7 @@ const NET_SC_PREFS: &[&str] = &[
 
 // Native dialog asking to reboot now; uses System Events so no extra admin prompt.
 #[command(async)] fn prompt_reboot() -> Result<String, String> {
-    let dialog = r#"button returned of (display dialog "Network configuration was rebuilt.\n\nReboot now to finish the repair?" buttons {"Later", "Reboot Now"} default button "Reboot Now" with title "NetKeeper" with icon caution)"#;
+    let dialog = r#"button returned of (display dialog "Network configuration was rebuilt.\n\nReboot now to finish the repair?" buttons {"Later", "Reboot Now"} default button "Reboot Now" with title "WiKeep" with icon caution)"#;
     let out = Command::new("osascript").args(["-e", dialog]).output().map_err(|e| e.to_string())?;
     let res = String::from_utf8_lossy(&out.stdout);
     if res.contains("Reboot Now") {
@@ -271,7 +271,7 @@ const NET_SC_PREFS: &[&str] = &[
 }
 
 fn main() {
-    let show_item = CustomMenuItem::new("show".to_string(), "Show NetKeeper");
+    let show_item = CustomMenuItem::new("show".to_string(), "Show WiKeep");
     let hide_item = CustomMenuItem::new("hide".to_string(), "Hide to Tray");
     let quit_item = CustomMenuItem::new("quit".to_string(), "Quit");
     let tray_menu = SystemTrayMenu::new()

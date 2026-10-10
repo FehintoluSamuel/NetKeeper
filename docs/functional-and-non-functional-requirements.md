@@ -1,8 +1,8 @@
-# NetKeeper — Functional & Non-Functional Requirements
+# WiKeep — Functional & Non-Functional Requirements
 
 Version: **3.0.0** · Platform: **macOS** · Status: living document
 
-This document states what NetKeeper must do (functional) and how well it must do it (non-functional), in a testable form. It reflects the current implementation and separates **implemented**, **partial**, and **planned** items.
+This document states what WiKeep must do (functional) and how well it must do it (non-functional), in a testable form. It reflects the current implementation and separates **implemented**, **partial**, and **planned** items.
 
 Legend: Yes = implemented · Partial = partially implemented · Planned = not yet implemented
 
@@ -10,7 +10,7 @@ Legend: Yes = implemented · Partial = partially implemented · Planned = not ye
 
 ## 1. Scope
 
-NetKeeper is a local-first macOS desktop application for **monitoring, recovering and repairing Wi-Fi connectivity**. It targets single-user machines and requires no server component.
+WiKeep is a local-first macOS desktop application for **monitoring, recovering and repairing Wi-Fi connectivity**. It targets single-user machines and requires no server component.
 
 **In scope:** Wi-Fi scanning, live link diagnostics, automatic recovery/switching, OS-level network-plist repair, persistent logging, launch-at-login, menu-bar operation.
 
@@ -111,7 +111,7 @@ NetKeeper is a local-first macOS desktop application for **monitoring, recoverin
 
 | ID | Requirement | Status |
 | --- | --- | --- |
-| FR-8.1 | Persist settings to `~/.config/netkeeper/settings.json` | Yes |
+| FR-8.1 | Persist settings to `~/.config/wikeep/settings.json` | Yes |
 | FR-8.2 | Provide toggles for reconnect, keep-alive, wake, switching, notifications, dock/menu-bar, autostart | Yes |
 | FR-8.3 | Debounce saves to avoid write storms | Yes |
 | FR-8.4 | Provide ping targets and keep-alive interval choices | Yes |
